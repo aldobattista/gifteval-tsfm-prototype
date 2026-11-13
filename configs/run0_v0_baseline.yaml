@@ -1,0 +1,47 @@
+run_name: run0_v0_baseline
+
+# Patch canvas & 8-layer Transformer geometry (14,816,800 params)
+patch_size: 32
+max_patches: 128
+strip_rows: 32
+d_model: 384
+n_layers: 8
+n_heads: 6
+d_ff: 1024
+rope_max_pos: 128
+rope_base: 10000.0
+norm_eps: 1.0e-6
+
+# Data sampling, synthetic augmentation, and loss weighting
+sampling_alpha: 1.0
+loss_mode: flat_token
+loss_damping_tau: 12.0
+synth_prob: 0.0
+
+# Normalization, masking, horizon span, and blackout dropout
+scaling_mode: naive_zero_fill
+eps_sigma: 0.01
+exclude_blank_keys: false
+max_horizon_patches: 16
+history_blackout_prob: 0.0
+
+# Stem channels, monotone head, and cross-variate GroupAttention
+use_local_scale_and_lags: false
+head_type: left_softplus
+use_group_attn: false
+group_attn_layers: [3, 7]
+
+# Training & validation schedule (WSD with 5-snapshot cooldown soup)
+seed: 42
+total_steps: 20000
+warmup_steps: 1000
+cooldown_start_step: 15000
+soup_steps: [16000, 17000, 18000, 19000, 20000]
+lr: 3.0e-4
+min_lr_ratio: 0.05
+weight_decay: 0.01
+grad_clip: 1.0
+batch_size: 1
+num_workers: 2
+val_every_steps: 2000
+val_num_series: 1500

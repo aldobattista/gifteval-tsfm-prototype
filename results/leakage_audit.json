@@ -1,0 +1,118 @@
+{
+  "pretrain_directories_checked": 152,
+  "gift_eval_families_checked": 28,
+  "gift_eval_properties_count": 28,
+  "exact_name_overlap": [],
+  "substring_near_misses": [
+    {
+      "pretrain_dir": "australian_electricity_demand",
+      "gift_eval_dir": "electricity"
+    },
+    {
+      "pretrain_dir": "solar_power",
+      "gift_eval_dir": "solar"
+    },
+    {
+      "pretrain_dir": "weather",
+      "gift_eval_dir": "jena_weather"
+    }
+  ],
+  "near_miss_explanation": "Monash Australian daily `weather` (freq='D') is verified distinct from Max-Planck Jena sub-hourly/hourly/daily `jena_weather` (21 meteorological channels).",
+  "fingerprint_windows_screened": 11260,
+  "exact_quantized_z64_hash_collisions": 4,
+  "nondegenerate_z64_hash_collisions": 0,
+  "degenerate_step_collisions": [
+    "bdg-2_fox:H:n_uniq=2",
+    "uber_tlc_hourly:H:n_uniq=2",
+    "uber_tlc_hourly:H:n_uniq=2",
+    "uber_tlc_hourly:H:n_uniq=2"
+  ],
+  "max_pearson_r_64step": 1.0,
+  "max_pearson_pair": {
+    "pretrain_dir": "bdg-2_fox",
+    "gift_eval_task": "bitbrains_fast_storage/H",
+    "freq_bucket": "H",
+    "pearson_r": 1.0
+  },
+  "pairs_above_0_995": [
+    {
+      "pretrain_dir": "PEMS07",
+      "gift_eval_task": "jena_weather/10T",
+      "freq_bucket": "T",
+      "pearson_r": 0.99535
+    },
+    {
+      "pretrain_dir": "bdg-2_fox",
+      "gift_eval_task": "bitbrains_fast_storage/H",
+      "freq_bucket": "H",
+      "pearson_r": 1.0
+    },
+    {
+      "pretrain_dir": "fred_md",
+      "gift_eval_task": "m4_monthly",
+      "freq_bucket": "M",
+      "pearson_r": 0.99832
+    },
+    {
+      "pretrain_dir": "largest_2017",
+      "gift_eval_task": "jena_weather/10T",
+      "freq_bucket": "T",
+      "pearson_r": 0.99535
+    },
+    {
+      "pretrain_dir": "largest_2018",
+      "gift_eval_task": "jena_weather/10T",
+      "freq_bucket": "T",
+      "pearson_r": 0.99572
+    },
+    {
+      "pretrain_dir": "largest_2019",
+      "gift_eval_task": "jena_weather/10T",
+      "freq_bucket": "T",
+      "pearson_r": 0.99562
+    },
+    {
+      "pretrain_dir": "largest_2020",
+      "gift_eval_task": "jena_weather/10T",
+      "freq_bucket": "T",
+      "pearson_r": 0.99578
+    },
+    {
+      "pretrain_dir": "monash_m3_monthly",
+      "gift_eval_task": "m4_monthly",
+      "freq_bucket": "M",
+      "pearson_r": 0.9991
+    },
+    {
+      "pretrain_dir": "residential_load_power",
+      "gift_eval_task": "solar/10T",
+      "freq_bucket": "T",
+      "pearson_r": 0.99754
+    },
+    {
+      "pretrain_dir": "residential_pv_power",
+      "gift_eval_task": "jena_weather/10T",
+      "freq_bucket": "T",
+      "pearson_r": 0.99802
+    },
+    {
+      "pretrain_dir": "subseasonal_precip",
+      "gift_eval_task": "covid_deaths",
+      "freq_bucket": "D",
+      "pearson_r": 0.99635
+    },
+    {
+      "pretrain_dir": "uber_tlc_hourly",
+      "gift_eval_task": "bitbrains_fast_storage/H",
+      "freq_bucket": "H",
+      "pearson_r": 1.0
+    },
+    {
+      "pretrain_dir": "wind_farms_with_missing",
+      "gift_eval_task": "jena_weather/10T",
+      "freq_bucket": "T",
+      "pearson_r": 0.99559
+    }
+  ],
+  "clean_disjoint_verified": true
+}

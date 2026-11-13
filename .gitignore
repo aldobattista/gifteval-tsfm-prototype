@@ -1,0 +1,32 @@
+# Local datasets, virtual environments, and scratch caches
+data/
+checkpoints/
+wandb/
+_hf_tmp_cache/
+.venv/
+venv/
+
+# Python / OS / IDE cruft
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+.env
+
+# Track evaluation tables, audit manifests, figures, and localhost TensorBoard logs
+!results/
+!results/*.csv
+!results/*.json
+!results/figures/
+!results/figures/*.png
+!runs/
+!runs/**/events.out.tfevents.*.localhost
+runs/**/wandb/
+
+# Checkpoints and model weights (large binary artifacts live outside Git)
+*.pt
+*.pth
+*.safetensors
+*.ckpt

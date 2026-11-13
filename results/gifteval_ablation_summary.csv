@@ -1,0 +1,15 @@
+run_name,postproc,n_params,n_tasks,geo_nmwql,geo_nmase,mean_cov80
+run0_v0_baseline,raw,14816800,97,0.621814,0.890478,0.767725
+run0_v0_baseline,clamp_snap,14816800,97,0.618752,0.887276,0.772207
+run1_data_balanced,raw,14816800,97,0.602506,0.866374,0.760862
+run1_data_balanced,clamp_snap,14816800,97,0.599215,0.863516,0.765362
+run2_missingness_suffix_cpm,raw,14816800,97,0.605029,0.877849,0.791124
+run2_missingness_suffix_cpm,clamp_snap,14816800,97,0.601798,0.875455,0.795512
+run3_probit_localscale_lags,raw,15136288,97,0.607354,0.871302,0.773134
+run3_probit_localscale_lags,clamp_snap,15136288,97,0.603837,0.867949,0.778299
+run4_multivariate_group_attn,raw,16317344,97,0.604711,0.867795,0.774887
+run4_multivariate_group_attn,clamp_snap,16317344,97,0.600977,0.86465,0.780125
+run4_multivariate_group_attn,sym_avg_clamp,16317344,97,0.599847,0.862356,0.780871
+run5_coupled_synth_mix,raw,16317344,97,0.59463,0.859599,0.778855
+run5_coupled_synth_mix,clamp_snap,16317344,97,0.590723,0.855619,0.784095
+run5_coupled_synth_mix,sym_avg_clamp,16317344,97,0.589038,0.852315,0.784912

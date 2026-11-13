@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tsfm-proto"
+version = "0.1.0"
+description = "Clean prototype time-series foundation model trained on theforecastingcompany/GiftEvalPretrain and evaluated on GIFT-Eval."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.2",
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pyarrow>=14.0",
+    "pyyaml>=6.0",
+    "einops>=0.7",
+    "jaxtyping>=0.2",
+    "safetensors>=0.4",
+    "huggingface_hub>=0.23",
+    "matplotlib>=3.8",
+    "scipy>=1.11",
+    "tqdm>=4.66",
+    "tensorboard>=2.14",
+]
+
+[project.optional-dependencies]
+# Note: install GIFT-Eval directly from GitHub (`pip install git+https://github.com/SalesforceAIResearch/gift-eval.git`),
+# since PEP 508 / PyPI wheel metadata forbids direct git URLs in optional-dependencies.
+eval = [
+    "datasets>=2.18",
+    "gluonts>=0.15",
+]
+dev = [
+    "datasets>=2.18",
+    "gluonts>=0.15",
+    "pytest>=7.4",
+    "nbconvert>=6.5",
+    "nbformat>=5.9",
+    "jupytext>=1.16",
+    "ipykernel>=6.29",
+    "wandb>=0.16",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

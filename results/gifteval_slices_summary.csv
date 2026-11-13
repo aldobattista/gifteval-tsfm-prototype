@@ -1,0 +1,267 @@
+run_name,postproc,slice,n_tasks,geo_nmwql,geo_nmase,mean_cov80
+run0_v0_baseline,raw,Overall (97),97,0.621814,0.890478,0.767725
+run0_v0_baseline,raw,Term: short,55,0.645003,0.862822,0.797499
+run0_v0_baseline,raw,Term: medium,21,0.599233,0.917776,0.77334
+run0_v0_baseline,raw,Term: long,21,0.586245,0.938415,0.68413
+run0_v0_baseline,raw,Horizon <= 512,74,0.616018,0.856605,0.797284
+run0_v0_baseline,raw,Horizon > 512,23,0.640835,1.008814,0.672622
+run0_v0_baseline,raw,Univariate,54,0.629512,0.841901,0.787856
+run0_v0_baseline,raw,Multivariate,43,0.612281,0.955469,0.742443
+run0_v0_baseline,raw,Past Covariates,24,0.687321,0.932753,0.710074
+run0_v0_baseline,raw,Missing-Flagged Datasets,6,0.598538,0.749204,0.803085
+run0_v0_baseline,raw,Low-Res Freq (A/Q/M/W),15,0.821628,0.945423,0.815465
+run0_v0_baseline,raw,High-Res Freq (D/H/Min/S),82,0.590913,0.880778,0.758992
+run0_v0_baseline,raw,Domain: Econ/Fin,6,0.968248,1.207658,0.836273
+run0_v0_baseline,raw,Domain: Energy,32,0.67466,0.935152,0.790879
+run0_v0_baseline,raw,Domain: Healthcare,5,0.874898,0.957268,0.79041
+run0_v0_baseline,raw,Domain: Nature,15,0.380633,0.787805,0.781701
+run0_v0_baseline,raw,Domain: Sales,4,0.479427,0.729458,0.776565
+run0_v0_baseline,raw,Domain: Transport,15,0.525315,0.6848,0.749383
+run0_v0_baseline,raw,Domain: Web/CloudOps,20,0.757867,1.025253,0.705949
+run0_v0_baseline,clamp_snap,Overall (97),97,0.618752,0.887276,0.772207
+run0_v0_baseline,clamp_snap,Term: short,55,0.642378,0.859597,0.803765
+run0_v0_baseline,clamp_snap,Term: medium,21,0.595312,0.914595,0.775608
+run0_v0_baseline,clamp_snap,Term: long,21,0.582995,0.935266,0.686157
+run0_v0_baseline,clamp_snap,Horizon <= 512,74,0.613011,0.853387,0.802531
+run0_v0_baseline,clamp_snap,Horizon > 512,23,0.637589,1.005709,0.674644
+run0_v0_baseline,clamp_snap,Univariate,54,0.626042,0.837343,0.79404
+run0_v0_baseline,clamp_snap,Multivariate,43,0.609716,0.954221,0.74479
+run0_v0_baseline,clamp_snap,Past Covariates,24,0.684848,0.93112,0.714278
+run0_v0_baseline,clamp_snap,Missing-Flagged Datasets,6,0.592245,0.738511,0.816403
+run0_v0_baseline,clamp_snap,Low-Res Freq (A/Q/M/W),15,0.818306,0.940364,0.821794
+run0_v0_baseline,clamp_snap,High-Res Freq (D/H/Min/S),82,0.587908,0.877894,0.763137
+run0_v0_baseline,clamp_snap,Domain: Econ/Fin,6,0.96792,1.207596,0.837161
+run0_v0_baseline,clamp_snap,Domain: Energy,32,0.6701,0.930562,0.790879
+run0_v0_baseline,clamp_snap,Domain: Healthcare,5,0.874888,0.951699,0.79806
+run0_v0_baseline,clamp_snap,Domain: Nature,15,0.378071,0.786621,0.78446
+run0_v0_baseline,clamp_snap,Domain: Sales,4,0.471319,0.711901,0.838801
+run0_v0_baseline,clamp_snap,Domain: Transport,15,0.525115,0.684737,0.749383
+run0_v0_baseline,clamp_snap,Domain: Web/CloudOps,20,0.754671,1.023149,0.710993
+run1_data_balanced,raw,Overall (97),97,0.602506,0.866374,0.760862
+run1_data_balanced,raw,Term: short,55,0.601133,0.812297,0.791623
+run1_data_balanced,raw,Term: medium,21,0.614987,0.9365,0.765772
+run1_data_balanced,raw,Term: long,21,0.593816,0.94888,0.675387
+run1_data_balanced,raw,Horizon <= 512,74,0.588475,0.820522,0.791103
+run1_data_balanced,raw,Horizon > 512,23,0.649959,1.032012,0.663565
+run1_data_balanced,raw,Univariate,54,0.591987,0.796538,0.78507
+run1_data_balanced,raw,Multivariate,43,0.61598,0.96281,0.730462
+run1_data_balanced,raw,Past Covariates,24,0.690771,0.953094,0.706113
+run1_data_balanced,raw,Missing-Flagged Datasets,6,0.567058,0.750437,0.801657
+run1_data_balanced,raw,Low-Res Freq (A/Q/M/W),15,0.758461,0.875472,0.798999
+run1_data_balanced,raw,High-Res Freq (D/H/Min/S),82,0.577662,0.86472,0.753886
+run1_data_balanced,raw,Domain: Econ/Fin,6,0.84631,1.049897,0.802482
+run1_data_balanced,raw,Domain: Energy,32,0.67374,0.917344,0.781477
+run1_data_balanced,raw,Domain: Healthcare,5,0.668559,0.777457,0.813321
+run1_data_balanced,raw,Domain: Nature,15,0.372867,0.770492,0.774826
+run1_data_balanced,raw,Domain: Sales,4,0.435206,0.716373,0.779489
+run1_data_balanced,raw,Domain: Transport,15,0.505844,0.660551,0.756128
+run1_data_balanced,raw,Domain: Web/CloudOps,20,0.77315,1.066037,0.69163
+run1_data_balanced,clamp_snap,Overall (97),97,0.599215,0.863516,0.765362
+run1_data_balanced,clamp_snap,Term: short,55,0.598106,0.80904,0.797979
+run1_data_balanced,clamp_snap,Term: medium,21,0.610838,0.933986,0.767914
+run1_data_balanced,clamp_snap,Term: long,21,0.59067,0.946937,0.677383
+run1_data_balanced,clamp_snap,Horizon <= 512,74,0.585147,0.817458,0.796346
+run1_data_balanced,clamp_snap,Horizon > 512,23,0.646812,1.030055,0.665672
+run1_data_balanced,clamp_snap,Univariate,54,0.588425,0.79253,0.791062
+run1_data_balanced,clamp_snap,Multivariate,43,0.613045,0.961736,0.733087
+run1_data_balanced,clamp_snap,Past Covariates,24,0.687751,0.951739,0.710805
+run1_data_balanced,clamp_snap,Missing-Flagged Datasets,6,0.559194,0.740004,0.816921
+run1_data_balanced,clamp_snap,Low-Res Freq (A/Q/M/W),15,0.754355,0.870845,0.805358
+run1_data_balanced,clamp_snap,High-Res Freq (D/H/Min/S),82,0.574501,0.862182,0.758045
+run1_data_balanced,clamp_snap,Domain: Econ/Fin,6,0.846035,1.049832,0.803376
+run1_data_balanced,clamp_snap,Domain: Energy,32,0.669056,0.913618,0.781479
+run1_data_balanced,clamp_snap,Domain: Healthcare,5,0.668529,0.771883,0.818991
+run1_data_balanced,clamp_snap,Domain: Nature,15,0.370211,0.769407,0.778132
+run1_data_balanced,clamp_snap,Domain: Sales,4,0.425555,0.699027,0.839611
+run1_data_balanced,clamp_snap,Domain: Transport,15,0.505639,0.660504,0.756128
+run1_data_balanced,clamp_snap,Domain: Web/CloudOps,20,0.769182,1.064248,0.697261
+run2_missingness_suffix_cpm,raw,Overall (97),97,0.605029,0.877849,0.791124
+run2_missingness_suffix_cpm,raw,Term: short,55,0.612716,0.828855,0.80712
+run2_missingness_suffix_cpm,raw,Term: medium,21,0.610452,0.9407,0.774673
+run2_missingness_suffix_cpm,raw,Term: long,21,0.580149,0.952164,0.76568
+run2_missingness_suffix_cpm,raw,Horizon <= 512,74,0.595896,0.83391,0.802277
+run2_missingness_suffix_cpm,raw,Horizon > 512,23,0.635371,1.03555,0.755238
+run2_missingness_suffix_cpm,raw,Univariate,54,0.599008,0.810752,0.807406
+run2_missingness_suffix_cpm,raw,Multivariate,43,0.612675,0.970032,0.770676
+run2_missingness_suffix_cpm,raw,Past Covariates,24,0.686332,0.96568,0.758848
+run2_missingness_suffix_cpm,raw,Missing-Flagged Datasets,6,0.562257,0.749429,0.820848
+run2_missingness_suffix_cpm,raw,Low-Res Freq (A/Q/M/W),15,0.778357,0.901685,0.823767
+run2_missingness_suffix_cpm,raw,High-Res Freq (D/H/Min/S),82,0.577781,0.873558,0.785153
+run2_missingness_suffix_cpm,raw,Domain: Econ/Fin,6,0.885046,1.105455,0.821329
+run2_missingness_suffix_cpm,raw,Domain: Energy,32,0.675131,0.925721,0.80454
+run2_missingness_suffix_cpm,raw,Domain: Healthcare,5,0.699475,0.809946,0.838384
+run2_missingness_suffix_cpm,raw,Domain: Nature,15,0.371726,0.776159,0.807854
+run2_missingness_suffix_cpm,raw,Domain: Sales,4,0.436044,0.713965,0.783462
+run2_missingness_suffix_cpm,raw,Domain: Transport,15,0.509924,0.668684,0.773759
+run2_missingness_suffix_cpm,raw,Domain: Web/CloudOps,20,0.764023,1.076289,0.75079
+run2_missingness_suffix_cpm,clamp_snap,Overall (97),97,0.601798,0.875455,0.795512
+run2_missingness_suffix_cpm,clamp_snap,Term: short,55,0.609891,0.826071,0.813578
+run2_missingness_suffix_cpm,clamp_snap,Term: medium,21,0.606665,0.938892,0.776312
+run2_missingness_suffix_cpm,clamp_snap,Term: long,21,0.576447,0.950375,0.767396
+run2_missingness_suffix_cpm,clamp_snap,Horizon <= 512,74,0.592806,0.831375,0.807506
+run2_missingness_suffix_cpm,clamp_snap,Horizon > 512,23,0.631666,1.033763,0.756921
+run2_missingness_suffix_cpm,clamp_snap,Univariate,54,0.595663,0.807333,0.813671
+run2_missingness_suffix_cpm,clamp_snap,Multivariate,43,0.609593,0.969204,0.772707
+run2_missingness_suffix_cpm,clamp_snap,Past Covariates,24,0.682674,0.964542,0.762482
+run2_missingness_suffix_cpm,clamp_snap,Missing-Flagged Datasets,6,0.554914,0.739128,0.83845
+run2_missingness_suffix_cpm,clamp_snap,Low-Res Freq (A/Q/M/W),15,0.77439,0.896899,0.831229
+run2_missingness_suffix_cpm,clamp_snap,High-Res Freq (D/H/Min/S),82,0.57467,0.871588,0.788978
+run2_missingness_suffix_cpm,clamp_snap,Domain: Econ/Fin,6,0.884752,1.105385,0.82214
+run2_missingness_suffix_cpm,clamp_snap,Domain: Energy,32,0.670899,0.922952,0.80454
+run2_missingness_suffix_cpm,clamp_snap,Domain: Healthcare,5,0.699455,0.805604,0.845431
+run2_missingness_suffix_cpm,clamp_snap,Domain: Nature,15,0.369345,0.775323,0.811324
+run2_missingness_suffix_cpm,clamp_snap,Domain: Sales,4,0.4269,0.696975,0.845031
+run2_missingness_suffix_cpm,clamp_snap,Domain: Transport,15,0.509598,0.668615,0.773759
+run2_missingness_suffix_cpm,clamp_snap,Domain: Web/CloudOps,20,0.759257,1.074794,0.755151
+run3_probit_localscale_lags,raw,Overall (97),97,0.607354,0.871302,0.773134
+run3_probit_localscale_lags,raw,Term: short,55,0.61537,0.819197,0.784102
+run3_probit_localscale_lags,raw,Term: medium,21,0.611419,0.935527,0.764522
+run3_probit_localscale_lags,raw,Term: long,21,0.582948,0.953721,0.75302
+run3_probit_localscale_lags,raw,Horizon <= 512,74,0.593945,0.82243,0.785554
+run3_probit_localscale_lags,raw,Horizon > 512,23,0.652584,1.049128,0.733175
+run3_probit_localscale_lags,raw,Univariate,54,0.600241,0.806156,0.788808
+run3_probit_localscale_lags,raw,Multivariate,43,0.616405,0.960621,0.75345
+run3_probit_localscale_lags,raw,Past Covariates,24,0.698228,0.955916,0.71403
+run3_probit_localscale_lags,raw,Missing-Flagged Datasets,6,0.57118,0.753046,0.807229
+run3_probit_localscale_lags,raw,Low-Res Freq (A/Q/M/W),15,0.759119,0.853896,0.821964
+run3_probit_localscale_lags,raw,High-Res Freq (D/H/Min/S),82,0.583072,0.874525,0.764201
+run3_probit_localscale_lags,raw,Domain: Econ/Fin,6,0.879929,1.0681,0.785018
+run3_probit_localscale_lags,raw,Domain: Energy,32,0.669885,0.918177,0.805996
+run3_probit_localscale_lags,raw,Domain: Healthcare,5,0.729913,0.813303,0.799617
+run3_probit_localscale_lags,raw,Domain: Nature,15,0.372516,0.776795,0.788883
+run3_probit_localscale_lags,raw,Domain: Sales,4,0.443037,0.713724,0.779884
+run3_probit_localscale_lags,raw,Domain: Transport,15,0.509325,0.666857,0.75152
+run3_probit_localscale_lags,raw,Domain: Web/CloudOps,20,0.778121,1.062992,0.713417
+run3_probit_localscale_lags,clamp_snap,Overall (97),97,0.603837,0.867949,0.778299
+run3_probit_localscale_lags,clamp_snap,Term: short,55,0.612414,0.815868,0.791102
+run3_probit_localscale_lags,clamp_snap,Term: medium,21,0.606983,0.931662,0.767414
+run3_probit_localscale_lags,clamp_snap,Term: long,21,0.578921,0.950858,0.755652
+run3_probit_localscale_lags,clamp_snap,Horizon <= 512,74,0.590602,0.818987,0.791442
+run3_probit_localscale_lags,clamp_snap,Horizon > 512,23,0.648466,1.046231,0.736012
+run3_probit_localscale_lags,clamp_snap,Univariate,54,0.596195,0.801221,0.795289
+run3_probit_localscale_lags,clamp_snap,Multivariate,43,0.613572,0.959674,0.756962
+run3_probit_localscale_lags,clamp_snap,Past Covariates,24,0.69485,0.954669,0.720021
+run3_probit_localscale_lags,clamp_snap,Missing-Flagged Datasets,6,0.563917,0.742548,0.827083
+run3_probit_localscale_lags,clamp_snap,Low-Res Freq (A/Q/M/W),15,0.755389,0.849448,0.829141
+run3_probit_localscale_lags,clamp_snap,High-Res Freq (D/H/Min/S),82,0.579602,0.871377,0.768998
+run3_probit_localscale_lags,clamp_snap,Domain: Econ/Fin,6,0.879695,1.068053,0.786078
+run3_probit_localscale_lags,clamp_snap,Domain: Energy,32,0.664255,0.912223,0.806007
+run3_probit_localscale_lags,clamp_snap,Domain: Healthcare,5,0.729885,0.809813,0.80578
+run3_probit_localscale_lags,clamp_snap,Domain: Nature,15,0.370304,0.775853,0.793832
+run3_probit_localscale_lags,clamp_snap,Domain: Sales,4,0.434027,0.697112,0.841247
+run3_probit_localscale_lags,clamp_snap,Domain: Transport,15,0.509114,0.666824,0.75152
+run3_probit_localscale_lags,clamp_snap,Domain: Web/CloudOps,20,0.773711,1.061349,0.720606
+run4_multivariate_group_attn,raw,Overall (97),97,0.604711,0.867795,0.774887
+run4_multivariate_group_attn,raw,Term: short,55,0.605622,0.809423,0.785981
+run4_multivariate_group_attn,raw,Term: medium,21,0.619098,0.945002,0.762432
+run4_multivariate_group_attn,raw,Term: long,21,0.588333,0.956324,0.758285
+run4_multivariate_group_attn,raw,Horizon <= 512,74,0.590576,0.819038,0.786588
+run4_multivariate_group_attn,raw,Horizon > 512,23,0.652525,1.045236,0.73724
+run4_multivariate_group_attn,raw,Univariate,54,0.595067,0.800594,0.795275
+run4_multivariate_group_attn,raw,Multivariate,43,0.617043,0.960233,0.749283
+run4_multivariate_group_attn,raw,Past Covariates,24,0.705155,0.967192,0.701996
+run4_multivariate_group_attn,raw,Missing-Flagged Datasets,6,0.5665,0.753331,0.811921
+run4_multivariate_group_attn,raw,Low-Res Freq (A/Q/M/W),15,0.739727,0.834218,0.82015
+run4_multivariate_group_attn,raw,High-Res Freq (D/H/Min/S),82,0.582824,0.874081,0.766607
+run4_multivariate_group_attn,raw,Domain: Econ/Fin,6,0.860191,1.011579,0.794483
+run4_multivariate_group_attn,raw,Domain: Energy,32,0.66637,0.913816,0.813811
+run4_multivariate_group_attn,raw,Domain: Healthcare,5,0.66086,0.772347,0.80968
+run4_multivariate_group_attn,raw,Domain: Nature,15,0.374288,0.774909,0.794059
+run4_multivariate_group_attn,raw,Domain: Sales,4,0.43831,0.716499,0.773859
+run4_multivariate_group_attn,raw,Domain: Transport,15,0.515237,0.67423,0.765892
+run4_multivariate_group_attn,raw,Domain: Web/CloudOps,20,0.785036,1.073761,0.690603
+run4_multivariate_group_attn,clamp_snap,Overall (97),97,0.600977,0.86465,0.780125
+run4_multivariate_group_attn,clamp_snap,Term: short,55,0.602411,0.806092,0.793361
+run4_multivariate_group_attn,clamp_snap,Term: medium,21,0.614723,0.941945,0.765116
+run4_multivariate_group_attn,clamp_snap,Term: long,21,0.583883,0.953716,0.76047
+run4_multivariate_group_attn,clamp_snap,Horizon <= 512,74,0.587065,0.815792,0.792778
+run4_multivariate_group_attn,clamp_snap,Horizon > 512,23,0.648015,1.042593,0.739416
+run4_multivariate_group_attn,clamp_snap,Univariate,54,0.591277,0.796062,0.802078
+run4_multivariate_group_attn,clamp_snap,Multivariate,43,0.613385,0.959214,0.752557
+run4_multivariate_group_attn,clamp_snap,Past Covariates,24,0.701112,0.966093,0.707845
+run4_multivariate_group_attn,clamp_snap,Missing-Flagged Datasets,6,0.558578,0.742105,0.831767
+run4_multivariate_group_attn,clamp_snap,Low-Res Freq (A/Q/M/W),15,0.735684,0.829455,0.827438
+run4_multivariate_group_attn,clamp_snap,High-Res Freq (D/H/Min/S),82,0.57915,0.871247,0.771471
+run4_multivariate_group_attn,clamp_snap,Domain: Econ/Fin,6,0.859818,1.011471,0.795383
+run4_multivariate_group_attn,clamp_snap,Domain: Energy,32,0.661405,0.90908,0.813811
+run4_multivariate_group_attn,clamp_snap,Domain: Healthcare,5,0.660832,0.767668,0.820713
+run4_multivariate_group_attn,clamp_snap,Domain: Nature,15,0.371157,0.773534,0.798622
+run4_multivariate_group_attn,clamp_snap,Domain: Sales,4,0.428641,0.698816,0.833555
+run4_multivariate_group_attn,clamp_snap,Domain: Transport,15,0.514959,0.674145,0.765904
+run4_multivariate_group_attn,clamp_snap,Domain: Web/CloudOps,20,0.779745,1.072347,0.697612
+run4_multivariate_group_attn,sym_avg_clamp,Overall (97),97,0.599847,0.862356,0.780871
+run4_multivariate_group_attn,sym_avg_clamp,Term: short,55,0.601739,0.804338,0.792569
+run4_multivariate_group_attn,sym_avg_clamp,Term: medium,21,0.613374,0.939875,0.767451
+run4_multivariate_group_attn,sym_avg_clamp,Term: long,21,0.581799,0.949563,0.763654
+run4_multivariate_group_attn,sym_avg_clamp,Horizon <= 512,74,0.586213,0.813963,0.792852
+run4_multivariate_group_attn,sym_avg_clamp,Horizon > 512,23,0.645903,1.038447,0.742323
+run4_multivariate_group_attn,sym_avg_clamp,Univariate,54,0.591286,0.796112,0.802118
+run4_multivariate_group_attn,sym_avg_clamp,Multivariate,43,0.610773,0.953408,0.754189
+run4_multivariate_group_attn,sym_avg_clamp,Past Covariates,24,0.701112,0.966093,0.707845
+run4_multivariate_group_attn,sym_avg_clamp,Missing-Flagged Datasets,6,0.558657,0.742523,0.832123
+run4_multivariate_group_attn,sym_avg_clamp,Low-Res Freq (A/Q/M/W),15,0.736728,0.830077,0.822676
+run4_multivariate_group_attn,sym_avg_clamp,High-Res Freq (D/H/Min/S),82,0.577712,0.868395,0.773224
+run4_multivariate_group_attn,sym_avg_clamp,Domain: Econ/Fin,6,0.859818,1.011471,0.795383
+run4_multivariate_group_attn,sym_avg_clamp,Domain: Energy,32,0.656713,0.903156,0.815218
+run4_multivariate_group_attn,sym_avg_clamp,Domain: Healthcare,5,0.660832,0.767668,0.820713
+run4_multivariate_group_attn,sym_avg_clamp,Domain: Nature,15,0.372277,0.771039,0.800443
+run4_multivariate_group_attn,sym_avg_clamp,Domain: Sales,4,0.428641,0.698816,0.833555
+run4_multivariate_group_attn,sym_avg_clamp,Domain: Transport,15,0.514959,0.674145,0.765904
+run4_multivariate_group_attn,sym_avg_clamp,Domain: Web/CloudOps,20,0.779745,1.072347,0.697612
+run5_coupled_synth_mix,raw,Overall (97),97,0.59463,0.859599,0.778855
+run5_coupled_synth_mix,raw,Term: short,55,0.598109,0.806531,0.789502
+run5_coupled_synth_mix,raw,Term: medium,21,0.601234,0.920105,0.769865
+run5_coupled_synth_mix,raw,Term: long,21,0.579179,0.948931,0.759959
+run5_coupled_synth_mix,raw,Horizon <= 512,74,0.58291,0.812851,0.790069
+run5_coupled_synth_mix,raw,Horizon > 512,23,0.633958,1.029033,0.742774
+run5_coupled_synth_mix,raw,Univariate,54,0.59526,0.803925,0.789711
+run5_coupled_synth_mix,raw,Multivariate,43,0.593839,0.935008,0.765221
+run5_coupled_synth_mix,raw,Past Covariates,24,0.64887,0.912185,0.724713
+run5_coupled_synth_mix,raw,Missing-Flagged Datasets,6,0.560186,0.748862,0.805656
+run5_coupled_synth_mix,raw,Low-Res Freq (A/Q/M/W),15,0.745149,0.85051,0.82775
+run5_coupled_synth_mix,raw,High-Res Freq (D/H/Min/S),82,0.570585,0.861272,0.76991
+run5_coupled_synth_mix,raw,Domain: Econ/Fin,6,0.843712,1.075953,0.80203
+run5_coupled_synth_mix,raw,Domain: Energy,32,0.677128,0.927513,0.809233
+run5_coupled_synth_mix,raw,Domain: Healthcare,5,0.656725,0.756558,0.780272
+run5_coupled_synth_mix,raw,Domain: Nature,15,0.375333,0.764172,0.799839
+run5_coupled_synth_mix,raw,Domain: Sales,4,0.432888,0.709339,0.771219
+run5_coupled_synth_mix,raw,Domain: Transport,15,0.513554,0.670887,0.763689
+run5_coupled_synth_mix,raw,Domain: Web/CloudOps,20,0.712509,1.004205,0.720105
+run5_coupled_synth_mix,clamp_snap,Overall (97),97,0.590723,0.855619,0.784095
+run5_coupled_synth_mix,clamp_snap,Term: short,55,0.594714,0.802243,0.796962
+run5_coupled_synth_mix,clamp_snap,Term: medium,21,0.596716,0.916271,0.77237
+run5_coupled_synth_mix,clamp_snap,Term: long,21,0.574566,0.94581,0.762119
+run5_coupled_synth_mix,clamp_snap,Horizon <= 512,74,0.579208,0.80869,0.796277
+run5_coupled_synth_mix,clamp_snap,Horizon > 512,23,0.629344,1.025889,0.744899
+run5_coupled_synth_mix,clamp_snap,Univariate,54,0.591334,0.798957,0.796757
+run5_coupled_synth_mix,clamp_snap,Multivariate,43,0.589955,0.932502,0.768193
+run5_coupled_synth_mix,clamp_snap,Past Covariates,24,0.644912,0.909021,0.729994
+run5_coupled_synth_mix,clamp_snap,Missing-Flagged Datasets,6,0.552697,0.738466,0.825442
+run5_coupled_synth_mix,clamp_snap,Low-Res Freq (A/Q/M/W),15,0.741305,0.846108,0.834763
+run5_coupled_synth_mix,clamp_snap,High-Res Freq (D/H/Min/S),82,0.566689,0.85737,0.774826
+run5_coupled_synth_mix,clamp_snap,Domain: Econ/Fin,6,0.843485,1.075888,0.803099
+run5_coupled_synth_mix,clamp_snap,Domain: Energy,32,0.671682,0.921716,0.809361
+run5_coupled_synth_mix,clamp_snap,Domain: Healthcare,5,0.656691,0.751538,0.792443
+run5_coupled_synth_mix,clamp_snap,Domain: Nature,15,0.371781,0.762126,0.804425
+run5_coupled_synth_mix,clamp_snap,Domain: Sales,4,0.423709,0.693323,0.831573
+run5_coupled_synth_mix,clamp_snap,Domain: Transport,15,0.513342,0.670833,0.763689
+run5_coupled_synth_mix,clamp_snap,Domain: Web/CloudOps,20,0.707377,1.000045,0.726441
+run5_coupled_synth_mix,sym_avg_clamp,Overall (97),97,0.589038,0.852315,0.784912
+run5_coupled_synth_mix,sym_avg_clamp,Term: short,55,0.593826,0.799739,0.796565
+run5_coupled_synth_mix,sym_avg_clamp,Term: medium,21,0.59413,0.912854,0.77479
+run5_coupled_synth_mix,sym_avg_clamp,Term: long,21,0.571739,0.940203,0.764514
+run5_coupled_synth_mix,sym_avg_clamp,Horizon <= 512,74,0.577853,0.805959,0.796669
+run5_coupled_synth_mix,sym_avg_clamp,Horizon > 512,23,0.626516,1.020335,0.747085
+run5_coupled_synth_mix,sym_avg_clamp,Univariate,54,0.591337,0.798976,0.796814
+run5_coupled_synth_mix,sym_avg_clamp,Multivariate,43,0.586164,0.924372,0.769965
+run5_coupled_synth_mix,sym_avg_clamp,Past Covariates,24,0.644912,0.909021,0.729994
+run5_coupled_synth_mix,sym_avg_clamp,Missing-Flagged Datasets,6,0.552724,0.738623,0.825954
+run5_coupled_synth_mix,sym_avg_clamp,Low-Res Freq (A/Q/M/W),15,0.740778,0.843073,0.830597
+run5_coupled_synth_mix,sym_avg_clamp,High-Res Freq (D/H/Min/S),82,0.564851,0.854017,0.776555
+run5_coupled_synth_mix,sym_avg_clamp,Domain: Econ/Fin,6,0.843485,1.075888,0.803099
+run5_coupled_synth_mix,sym_avg_clamp,Domain: Energy,32,0.664981,0.911264,0.811069
+run5_coupled_synth_mix,sym_avg_clamp,Domain: Healthcare,5,0.656691,0.751538,0.792443
+run5_coupled_synth_mix,sym_avg_clamp,Domain: Nature,15,0.37287,0.7616,0.806066
+run5_coupled_synth_mix,sym_avg_clamp,Domain: Sales,4,0.423709,0.693323,0.831573
+run5_coupled_synth_mix,sym_avg_clamp,Domain: Transport,15,0.513342,0.670833,0.763689
+run5_coupled_synth_mix,sym_avg_clamp,Domain: Web/CloudOps,20,0.707377,1.000045,0.726441

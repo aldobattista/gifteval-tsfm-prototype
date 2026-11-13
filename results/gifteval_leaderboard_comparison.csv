@@ -1,0 +1,36 @@
+table_rank,model,category,geo_nmwql,geo_nmase,geo_nmwql_excl_10s,wins_vs_sn_nmwql,wins_vs_sn_nmase,n_tasks,official_rank_of_141
+1,t0-gamma,Pretrained TSFM (TFC),0.451973,0.660842,0.450188,96,95,97,11
+2,t0-beta,Pretrained TSFM (TFC),0.473751,0.686539,0.469733,97,95,97,42
+3,Timer-S1,Pretrained TSFM,0.485299,0.69335,0.479263,95,94,97,60
+4,Chronos-2,Pretrained TSFM (120M),0.485416,0.697793,0.483584,97,94,97,61
+5,TiRex,Pretrained TSFM (35M),0.488464,0.715758,0.481853,96,94,97,67
+6,TimesFM-2.5,Pretrained TSFM (200M),0.490288,0.705031,0.487887,96,95,97,69
+7,t0-alpha,Pretrained TSFM (TFC),0.494139,0.724024,0.487166,96,90,97,72
+8,Chronos-2-Synth,"Pretrained TSFM (120M, Synth)",0.495835,0.720313,0.49731,96,93,97,73
+9,TabPFN-TS,Pretrained TSFM,0.544104,0.770877,0.532872,96,84,97,86
+10,timesfm_2_0_500m,Pretrained TSFM (500M),0.550426,0.758064,0.540737,93,81,97,91
+11,sundial_base_128m,Pretrained TSFM (128M),0.559038,0.750221,0.545805,89,81,97,98
+12,chronos_bolt_base,Pretrained TSFM (205M),0.574304,0.807592,0.530575,88,88,97,101
+13,chronos_bolt_small,Pretrained TSFM (48M),0.576707,0.822103,0.542286,91,87,97,102
+14,PatchTST,Task-Trained Deep,0.587049,0.848633,0.570775,89,71,97,104
+15,run5_coupled_synth_mix (+SymAvg+Clamp),"Our Prototype (14.8M-16.3M, Postproc)",0.589038,0.852315,0.558069,90,82,97,106
+16,run5_coupled_synth_mix (Raw),Our Prototype (14.8M-16.3M),0.59463,0.859599,0.563715,90,77,97,106
+17,Moirai_large,Pretrained TSFM (311M),0.598916,0.874855,0.564632,85,74,97,107
+18,run4_multivariate_group_attn (+SymAvg+Clamp),"Our Prototype (14.8M-16.3M, Postproc)",0.599847,0.862356,0.563269,90,82,97,108
+19,run1_data_balanced (Raw),Our Prototype (14.8M-16.3M),0.602506,0.866374,0.57063,89,75,97,108
+20,run4_multivariate_group_attn (Raw),Our Prototype (14.8M-16.3M),0.604711,0.867795,0.568138,90,78,97,109
+21,TFT,Task-Trained Deep,0.604746,0.915348,0.580415,85,59,97,109
+22,run2_missingness_suffix_cpm (Raw),Our Prototype (14.8M-16.3M),0.605029,0.877849,0.574009,90,76,97,110
+23,run3_probit_localscale_lags (Raw),Our Prototype (14.8M-16.3M),0.607354,0.871302,0.566525,89,73,97,110
+24,Moirai_base,Pretrained TSFM (91M),0.609528,0.900994,0.569252,85,78,97,111
+25,iTransformer,Task-Trained Deep,0.620346,0.89319,0.607355,86,65,97,114
+26,run0_v0_baseline (Raw),Our Prototype (14.8M-16.3M),0.621814,0.890478,0.589914,89,75,97,117
+27,Chronos_large,Pretrained TSFM (710M),0.647335,0.869565,0.616042,83,78,97,119
+28,Moirai_small,Pretrained TSFM (14M),0.650372,0.946095,0.611934,81,63,97,120
+29,Chronos_base,Pretrained TSFM (200M),0.652136,0.875795,0.618901,83,75,97,121
+30,Chronos_small,Pretrained TSFM (46M),0.662967,0.891672,0.633185,83,74,97,123
+31,TimesFM,Pretrained TSFM (200M),0.68037,1.077071,0.630146,81,64,97,124
+32,Auto_Arima,Statistical,0.911685,1.073621,0.87575,55,61,97,135
+33,Seasonal_Naive,Statistical,1.0,1.0,1.0,0,0,97,136
+34,Auto_Theta,Statistical,1.243652,1.090046,1.315779,43,40,97,137
+35,Naive,Statistical,1.591233,1.269754,1.58782,10,15,97,138

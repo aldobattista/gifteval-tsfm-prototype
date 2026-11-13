@@ -1,0 +1,20 @@
+{
+  "repo_id": "theforecastingcompany/GiftEvalPretrain",
+  "full_corpus_directories": 152,
+  "full_corpus_series": 3490516,
+  "full_corpus_compressed_gb": 878.26,
+  "subset_directories": 93,
+  "subset_non_climate_directories": 89,
+  "subset_climate_directories": [
+    "cmip6_1995",
+    "cmip6_2010",
+    "era5_2005",
+    "era5_2018"
+  ],
+  "subset_total_series": 96831,
+  "subset_total_variate_timesteps": 1022231331,
+  "subset_disk_bytes": 2737606113,
+  "subset_disk_gb": 2.738,
+  "dir_list_sha256": "cd113493cade4714fae3706aafad5dda51f4e0eb5720e5db5e0a59e13e588d68",
+  "build_wall_seconds": 2359.7
+}

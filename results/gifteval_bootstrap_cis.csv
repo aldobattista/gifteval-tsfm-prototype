@@ -1,0 +1,23 @@
+run_a,run_b,metric,gmr,pct_change,ci95_lo,ci95_hi,cluster_ci95_lo,cluster_ci95_hi,win_rate,n_tasks,n_families
+run1_data_balanced,run0_v0_baseline,nmwql,0.968949,-3.105,0.947689,0.988474,0.936623,0.991483,0.6804,97,28
+run1_data_balanced,run0_v0_baseline,nmase,0.972932,-2.707,0.955415,0.989647,0.947343,0.994222,0.6495,97,28
+run2_missingness_suffix_cpm,run1_data_balanced,nmwql,1.004187,0.419,0.993974,1.015204,0.994363,1.013809,0.5052,97,28
+run2_missingness_suffix_cpm,run1_data_balanced,nmase,1.013246,1.325,1.003193,1.024901,1.004392,1.023312,0.4639,97,28
+run3_probit_localscale_lags,run2_missingness_suffix_cpm,nmwql,1.003843,0.384,0.983143,1.025116,0.974342,1.04019,0.567,97,28
+run3_probit_localscale_lags,run2_missingness_suffix_cpm,nmase,0.992542,-0.746,0.974994,1.008357,0.968304,1.014546,0.5876,97,28
+run4_multivariate_group_attn,run3_probit_localscale_lags,nmwql,0.995649,-0.435,0.980251,1.009471,0.973491,1.014733,0.4536,97,28
+run4_multivariate_group_attn,run3_probit_localscale_lags,nmase,0.995974,-0.403,0.982152,1.008805,0.978449,1.012551,0.4845,97,28
+run5_coupled_synth_mix,run4_multivariate_group_attn,nmwql,0.983328,-1.667,0.967573,0.998666,0.957495,1.004408,0.5567,97,28
+run5_coupled_synth_mix,run4_multivariate_group_attn,nmase,0.990555,-0.944,0.974647,1.007078,0.967437,1.01187,0.6598,97,28
+run2_missingness_suffix_cpm,run0_v0_baseline,nmwql,0.973006,-2.699,0.954043,0.991223,0.945977,0.992095,0.6907,97,28
+run2_missingness_suffix_cpm,run0_v0_baseline,nmase,0.985819,-1.418,0.967448,1.004077,0.960056,1.008669,0.6186,97,28
+run3_probit_localscale_lags,run0_v0_baseline,nmwql,0.976745,-2.326,0.956228,0.997899,0.944029,1.009142,0.6495,97,28
+run3_probit_localscale_lags,run0_v0_baseline,nmase,0.978466,-2.153,0.957461,1.00029,0.94745,1.011213,0.6495,97,28
+run4_multivariate_group_attn,run0_v0_baseline,nmwql,0.972495,-2.751,0.949054,0.994667,0.938773,0.999466,0.5876,97,28
+run4_multivariate_group_attn,run0_v0_baseline,nmase,0.974527,-2.547,0.94989,0.997646,0.941057,1.003985,0.6289,97,28
+run5_coupled_synth_mix,run0_v0_baseline,nmwql,0.956282,-4.372,0.932935,0.979226,0.917822,0.985561,0.6907,97,28
+run5_coupled_synth_mix,run0_v0_baseline,nmase,0.965323,-3.468,0.944836,0.985728,0.932556,0.992142,0.6907,97,28
+run5_coupled_synth_mix (+SymAvg+Clamp),run5_coupled_synth_mix,nmwql,0.990597,-0.94,0.98711,0.993759,0.985462,0.995754,0.8763,97,28
+run5_coupled_synth_mix (+SymAvg+Clamp),run5_coupled_synth_mix,nmase,0.991527,-0.847,0.987856,0.994771,0.985519,0.996827,0.7423,97,28
+run5_coupled_synth_mix (+SymAvg+Clamp),run0_v0_baseline,nmwql,0.94729,-5.271,0.923975,0.970136,0.910747,0.974837,0.732,97,28
+run5_coupled_synth_mix (+SymAvg+Clamp),run0_v0_baseline,nmase,0.957144,-4.286,0.936441,0.977794,0.925831,0.983109,0.7423,97,28

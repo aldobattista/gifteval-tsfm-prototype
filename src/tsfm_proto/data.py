@@ -7,6 +7,13 @@ in ``train_views`` (excluding ``__hist`` slices when constructing new indices),
 and exposes deterministic CPU-only worker RNG streams.
 """
 
+## General: it defines the class SubsetDatasetStore, the whole data used for training. It is instantiated in train.py (at the beginning to create the validaiton dataset; within DataLoader to generate the data)
+##--> 3 main functions:
+##    1. [:-H_freq] in load_train_dir: it retains the last H_freq steps of 1500 series for internal validation and it discards from the memory when it loads the training, such that the model 
+##       can never see the future
+##    2. sampling_probs(alpha=0.35): it applies the temperature to reduce the unbalance between big and small datasets. d is the dataset, Nd is the number of series in the dataset.
+##        the prob of sampling from dataset d is pd~Nd^alpha and here we set alpha=0.35 to balance the sampling procedure between big and small datasets
+##    3. sample_train_item: sample a time series (real or synthetic)
 from __future__ import annotations
 
 import hashlib

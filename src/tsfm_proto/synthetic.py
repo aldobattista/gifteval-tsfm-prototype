@@ -5,6 +5,8 @@ series used in ``TSMixup`` are drawn strictly from training-pool ``SeriesItem``s
 after stripping ``[-H_freq:]`` validation holdout tails in ``SubsetDatasetStore``.
 """
 
+# Generates synthetic series on the fly to augument the standar real series dataset with more data with covariates utilization
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -10,6 +10,10 @@ era5_2018), and runs a two-stage anti-leakage audit against ``GIFT-Eval``
 (``results/leakage_audit.json``).
 """
 
+# 2 MAIN functions to consider:
+### _select_shard_indices: it reads 4 equidistant Parquet files (0,N/3,2N/3, last one) instead of the only data-00000 to avoid geographical/alphabetic biases 
+### _cap_series_arrays:  it crops long time series up to the last 8192 steps, and if the time series length is > ~16k steps it will add ~4k steps from the history
+
 from __future__ import annotations
 
 import argparse

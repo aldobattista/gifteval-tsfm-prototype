@@ -7,7 +7,7 @@
 
 A standalone, modular PyTorch time-series foundation model (`TSFMModel`, `14.82M -> 16.32M` parameters) pretrained from scratch on a stratified `2.74 GB` multi-shard subset of [`theforecastingcompany/GiftEvalPretrain`](https://huggingface.co/datasets/theforecastingcompany/GiftEvalPretrain) and evaluated zero-shot across all **`97` official `Salesforce/GIFT-Eval` configurations (`326,490` test windows)**.
 
-Instead of jumping straight to a complex black box, this repository evaluates **6 progressive iterations (`Runs 0..5`)** under identical compute (`20,000` steps each on a single Apple M2 Max laptop), explicitly auditing **every data, normalization, masking, objective, and architectural assumption** with disaggregated slices, `0/20/64`-step blackout stress tests, and post-processing decompositions (`Raw`, `+Clamp/Snap`, `+SymAvg+Clamp`).
+This repository evaluates **6 progressive iterations (`Runs 0..5`)** under identical compute (`20,000` steps each on a single Apple M2 Max laptop), explicitly auditing **every data, normalization, masking, objective, and architectural assumption** with disaggregated slices, `0/20/64`-step blackout stress tests, and post-processing decompositions (`Raw`, `+Clamp/Snap`, `+SymAvg+Clamp`).
 
 ---
 

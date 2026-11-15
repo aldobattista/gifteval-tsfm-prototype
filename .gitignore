@@ -21,6 +21,8 @@ __pycache__/
 !results/*.json
 !results/figures/
 !results/figures/*.png
+!results/forecast_showcase_book/
+!results/forecast_showcase_book/**
 !runs/
 !runs/**/events.out.tfevents.*.localhost
 runs/**/wandb/

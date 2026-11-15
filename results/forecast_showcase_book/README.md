@@ -10,7 +10,7 @@ Comprehensive English visual compendium of the strongest zero-shot forecast wind
 
 - **Full Vector Book (108 Pages PDF):** [`Run5_Top100_Forecast_Showcase_Book.pdf`](Run5_Top100_Forecast_Showcase_Book.pdf)
 - **Catalog Tables:** [`univariate_top50_catalog.csv`](univariate_top50_catalog.csv) | [`multivariate_top50_catalog.csv`](multivariate_top50_catalog.csv)
-- **Reproducible Generator:** [`generate_showcase_book.py`](generate_showcase_book.py)
+- **Reproducible Generator:** [`scripts/generate_showcase_book.py`](../../scripts/generate_showcase_book.py)
 
 ## Executive Summary
 

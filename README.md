@@ -3,6 +3,7 @@
 [![Tests](https://img.shields.io/badge/pytest-34%2F34%20passing-brightgreen)](tests/)
 [![Pretrain](https://img.shields.io/badge/Data-GiftEvalPretrain%20(93%20dirs%2C%202.74GB)-blue)](https://huggingface.co/datasets/theforecastingcompany/GiftEvalPretrain)
 [![Benchmark](https://img.shields.io/badge/GIFT--Eval-97%2F97%20tasks%20(326%2C490%20windows)-indigo)](https://huggingface.co/spaces/Salesforce/GIFT-Eval)
+[![W&B](https://img.shields.io/badge/W%26B-6%20Canonical%20Runs-FFBE00?logo=weightsandbiases&logoColor=black)](https://forge.coreweave.com/wandb/aldobattista/gifteval-tsfm-prototype)
 
 A standalone, modular PyTorch time-series foundation model (`TSFMModel`, `14.82M -> 16.32M` parameters) pretrained from scratch on a stratified `2.74 GB` multi-shard subset of [`theforecastingcompany/GiftEvalPretrain`](https://huggingface.co/datasets/theforecastingcompany/GiftEvalPretrain) and evaluated zero-shot across all **`97` official `Salesforce/GIFT-Eval` configurations (`326,490` test windows)**.
 
@@ -107,6 +108,8 @@ Geometric-mean `nMWQL` and `nMASE` (lower is better; normalized per task by offi
 ![Disaggregated GIFT-Eval Slices](results/figures/fig4_disaggregated_slices.png)
 ![Pre-Origin Blackout Stress Tests](results/figures/fig5_blackout_stress.png)
 
+- **Top-100 Zero-Shot Forecast & Covariate Ablation Showcase Book (`Run 5 +SymAvg+Clamp`):** Browse all 50 univariate and 50 multivariate with-vs-without-covariates plates in [results/forecast_showcase_book/README.md](results/forecast_showcase_book/README.md) or download the 108-page vector compendium [Run5_Top100_Forecast_Showcase_Book.pdf](results/forecast_showcase_book/Run5_Top100_Forecast_Showcase_Book.pdf).
+
 ---
 
 ## Quickstart & Exact Reproduction
@@ -136,6 +139,7 @@ PYTHONPATH=src python scripts/export_plots.py
 # With GIFT_EVAL + trained checkpoints present:
 PYTHONPATH=src python scripts/eval_gifteval.py --smoke --batch-size 64
 PYTHONPATH=src python scripts/eval_gifteval.py --batch-size 64
+PYTHONPATH=src python scripts/generate_showcase_book.py
 
 # 6. Validate checkpoint staging for Hugging Face Hub
 PYTHONPATH=src python scripts/upload_hf.py --repo-id user/gifteval-tsfm-proto --dry-run
@@ -150,5 +154,6 @@ PYTHONPATH=src python scripts/upload_hf.py --repo-id user/gifteval-tsfm-proto --
   - [01_data_pipeline_walkthrough.ipynb](notebooks/01_data_pipeline_walkthrough.ipynb) — Corpus skew, leakage checks, $\alpha=0.35$, scale equivariance, `W=64` lags & `[1,32,128]` packing.
   - [02_model_invariants_and_overfit_check.ipynb](notebooks/02_model_invariants_and_overfit_check.ipynb) — Causality, 1-patch `V` symmetry breaking, `100%`-NaN safety, Step-0 Probit fan, `GroupAttention` firewall & overfit curve.
   - [03_checkpoint_eval_and_forecasts.ipynb](notebooks/03_checkpoint_eval_and_forecasts.ipynb) — Offline-first loading, val `step_20k` vs. soup, official leaderboard table, 97-task CIs, live blackout & covariate forecast gallery, residual failure inspection.
+- **Top-100 Forecast Showcase Book ([results/forecast_showcase_book/](results/forecast_showcase_book/)):** [Catalog & Gallery](results/forecast_showcase_book/README.md) | [108-Page Vector PDF](results/forecast_showcase_book/Run5_Top100_Forecast_Showcase_Book.pdf) | [scripts/generate_showcase_book.py](scripts/generate_showcase_book.py).
 - **Technical Deep Dives & Candid Log:** [WORKLOG.md](WORKLOG.md) | [docs/01_data_pipeline_and_eda.md](docs/01_data_pipeline_and_eda.md) | [docs/02_architecture_and_ablations.md](docs/02_architecture_and_ablations.md) | [docs/03_evaluation_and_error_analysis.md](docs/03_evaluation_and_error_analysis.md)
 - **With More Time ([docs/04_with_more_time_roadmap.md](docs/04_with_more_time_roadmap.md)):** Full equation-backed production blueprint covering **Priority 0** quick wins + **12 vetted scaling pillars** (`3:1` interleaved gated delta-rule `Kalman-KDA` recurrence + pointwise-gated `HSTU` / `XPOS` full attention for `32k+` `10S` memory, known-future covariates $\mathbf{z}$ with `2*sigmoid` decoy gate & calendar rate normalization, `4x8` `u-µP` sub-patch residual stem, Björck rolling `W=64` + origin-blended readout frame, quadrature `Spline-IQF` + extreme tails + copula/`MinT` sums, `5`-anchor quadrature for $H > 1024$, retail Tobit stockouts + zero-preserving `TSMixup` + `50%` zero-MI SCM decoys, `3`-gate decontamination across `GIFT-Eval` + `fev-bench` + `TIME`, 2D BFD rectangle vs. 1D jagged `FlexAttention` packing, `NorMuon` + update-sign `CWD` + `u-µP` + `OnlineEMA`, dense multi-origin causal supervision + `70/30` `CPM`, and dual-cadence `P=16/P=8` low-res stem adapters [sharing `P=32` weights] + `RAF` + `LoRA`) plus **6 empirical guardrails**.

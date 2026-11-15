@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 import time
 import warnings
 from pathlib import Path
@@ -12,7 +13,9 @@ from pathlib import Path
 warnings.filterwarnings("ignore")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-BOOK_DIR = Path(__file__).resolve().parent
+if str(REPO_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "src"))
+BOOK_DIR = REPO_ROOT / "results" / "forecast_showcase_book"
 UNI_DIR = BOOK_DIR / "univariate_top50"
 MV_DIR = BOOK_DIR / "multivariate_top50"
 OV_DIR = BOOK_DIR / "overview_charts"
@@ -1561,7 +1564,7 @@ def export_catalogs_and_readme(uni_recs: list[dict], mv_recs: list[dict]) -> Non
         "",
         "- **Full Vector Book (108 Pages PDF):** [`Run5_Top100_Forecast_Showcase_Book.pdf`](Run5_Top100_Forecast_Showcase_Book.pdf)",
         "- **Catalog Tables:** [`univariate_top50_catalog.csv`](univariate_top50_catalog.csv) | [`multivariate_top50_catalog.csv`](multivariate_top50_catalog.csv)",
-        "- **Reproducible Generator:** [`generate_showcase_book.py`](generate_showcase_book.py)",
+        "- **Reproducible Generator:** [`scripts/generate_showcase_book.py`](../../scripts/generate_showcase_book.py)",
         "",
         "## Executive Summary",
         "",

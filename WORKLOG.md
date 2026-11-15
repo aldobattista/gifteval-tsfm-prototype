@@ -33,4 +33,4 @@ Chronological log of design choices, empirical diagnostics, compute accounting, 
 
 ## Phase 4 — Final Verification & Cleanup
 
-- Verified `33 / 33` pytest invariants, executed all `3` Jupyter notebooks cleanly top-to-bottom (with clean univariate/multivariate showcase forecasts preceding mechanism ablations and failure diagnosis in `Notebook 03`), confirmed `--recompute-summaries-only` & `upload_hf.py --dry-run`, regenerated `fig1..5` without overlapping labels, and pruned redundant auxiliary scripts.
+- Verified `33 / 33` pytest invariants, executed all `3` Jupyter notebooks cleanly top-to-bottom (with clean univariate/multivariate showcase forecasts preceding mechanism ablations and failure diagnosis in `Notebook 03`), confirmed `--recompute-summaries-only` & `upload_hf.py --dry-run`, regenerated `fig0..5` without overlapping labels, and pruned redundant auxiliary scripts.

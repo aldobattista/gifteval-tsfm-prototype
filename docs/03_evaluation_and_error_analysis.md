@@ -14,14 +14,14 @@ Before benchmarking `GIFT-Eval`, internal `1,500`-series validation ([val_soup_v
 
 Inference modes (`0` extra params, inspected strictly on visible context): **`Raw`** slices `Q21` deciles `q10..q90`; **`+Clamp`** clips `>= 0` on non-negative series and snaps bounded integer series (`< 2^23`) via `rint`; **`+SymAvg+Clamp`** averages `0.5 * (f(y) - flip(f(-y)))` on signed series (`min < 0`) before clamping. **`Cov80`** = `q10..q90` coverage; **`64`-Blk** = `nMWQL` with `64` pre-origin steps masked (`90` tasks with `median T_ctx >= 96`, point-`SN` normalized).
 
-| Run | `Raw` `nMWQL / nMASE` | `+Clamp` `nMWQL` | `+SymAvg+Clamp` `nMWQL / nMASE` | `Cov80` (`Raw -> Sym`) | `64`-Blk `nMWQL` (`90` tasks) | `nMWQL` Wins (`/97`: vs `R0 Raw` \| vs `SN`) |
+| Run | `Raw` `nMWQL / nMASE` | `+Clamp` `nMWQL` | `+SymAvg+Clamp` `nMWQL / nMASE` | `Cov80` (`Raw -> Sym`) | `64`-Blk `nMWQL` (`90` tasks) | `nMWQL` Wins (`/97`: vs `R0 Raw` / vs `SN`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`Run 0`** `v0_baseline` | `0.6218 / 0.8905` | `0.6188` | — | `0.768` | `0.9665` | `— \| 89` |
-| **`Run 1`** `data_balanced` | `0.6025 / 0.8664` | `0.5992` | — | `0.761` | `1.0287` | `66 \| 89` |
-| **`Run 2`** `missingness_suffix_cpm` | `0.6050 / 0.8778` | `0.6018` | — | `0.791` | `0.8265` (`-19.7%` vs `R1`) | `67 \| 90` |
-| **`Run 3`** `probit_localscale_lags` | `0.6074 / 0.8713` | `0.6038` | — | `0.773` | `0.8237` | `63 \| 89` |
-| **`Run 4`** `multivariate_group_attn` | `0.6047 / 0.8678` | `0.6010` | `0.5998 / 0.8624` | `0.775 -> 0.781` | `0.8339` | `57 \| 90` |
-| **`Run 5`** `coupled_synth_mix` | **`0.5946 / 0.8596`** | **`0.5907`** | **`0.5890 / 0.8523`** | `0.779 -> 0.785` | **`0.8204`** | **`67 \| 90` (`71` Sym vs `R0 Raw`)** |
+| **`Run 0`** `v0_baseline` | `0.6218 / 0.8905` | `0.6188` | — | `0.768` | `0.9665` | `— / 89` |
+| **`Run 1`** `data_balanced` | `0.6025 / 0.8664` | `0.5992` | — | `0.761` | `1.0287` | `66 / 89` |
+| **`Run 2`** `missingness_suffix_cpm` | `0.6050 / 0.8778` | `0.6018` | — | `0.791` | `0.8265` (`-19.7%` vs `R1`) | `67 / 90` |
+| **`Run 3`** `probit_localscale_lags` | `0.6074 / 0.8713` | `0.6038` | — | `0.773` | `0.8237` | `63 / 89` |
+| **`Run 4`** `multivariate_group_attn` | `0.6047 / 0.8678` | `0.6010` | `0.5998 / 0.8624` | `0.775 -> 0.781` | `0.8339` | `57 / 90` |
+| **`Run 5`** `coupled_synth_mix` | **`0.5946 / 0.8596`** | **`0.5907`** | **`0.5890 / 0.8523`** | `0.779 -> 0.785` | **`0.8204`** | **`67 / 90` (`71` Sym vs `R0 Raw`)** |
 
 - **Critical Step-by-Step Slices (Each vs Prior Run, [fig4_disaggregated_slices.png](../results/figures/fig4_disaggregated_slices.png)):** `Run 1` cuts `Healthcare` `-23.6%` (`0.8749 -> 0.6686`) and `Econ/Fin` `-12.6%` (`0.9682 -> 0.8463`); `Run 2` lifts `H > 512` `Cov80` (`0.664 -> 0.755`) and `20/64`-step blackout ([fig5_blackout_stress.png](../results/figures/fig5_blackout_stress.png): `0.7662 / 0.8265`); `Run 3` cuts `ex-10S` by `-1.30%` (`0.5665`) despite a `+29.8%` variance spike on the `6` un-pretrained `10S` tasks; `Run 5` slashes `Past Covariates (24)` `-7.98%` (`0.7052 -> 0.6489`) and `Web/CloudOps (20)` `-9.24%` (`0.7850 -> 0.7125`). See also [fig3_ablation_waterfall.png](../results/figures/fig3_ablation_waterfall.png).
 

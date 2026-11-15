@@ -5,7 +5,7 @@
 Raw [`theforecastingcompany/GiftEvalPretrain`](https://huggingface.co/datasets/theforecastingcompany/GiftEvalPretrain) contains `878.26 GB` across `152` Parquet directories (`3,490,516` series):
 - `63` gridded climate directories (`cmip6_*`, `era5_*`) consume `90.2%` of total bytes, and `buildings_900k` holds `51.4%` of series (`1.795M`).
 - Conversely, all `67` small/medium datasets (`<= 2,000` series) total just `2.60 GB` (`0.3%`).
-- [scripts/build_subset.py](../scripts/build_subset.py) builds a deterministic `2.74 GB` subset across `93` dirs (`89` non-climate + `4` climate: `cmip6_1995/2010`, `era5_2005/2018`, `96,831` capped segments = `<= 2,500` series/dir capped at `8,192` recent steps, `~1.02B` timesteps), keeping `100%` of small/medium datasets and `4` evenly spaced shards on huge dirs ([subset_manifest.json](../results/subset_manifest.json), [fig1_corpus_skew_and_sampling.png](../results/figures/fig1_corpus_skew_and_sampling.png)).
+- [scripts/build_subset.py](../scripts/build_subset.py) builds a deterministic `2.74 GB` subset across `93` dirs (`89` non-climate + `4` climate: `cmip6_1995/2010`, `era5_2005/2018`, `96,831` capped segments from `<= 2,500` sampled series/dir capped at `8,192` recent + `4,096` historical steps when `T > 16,384`, `~1.02B` timesteps), keeping `100%` of small/medium datasets and `4` evenly spaced shards on huge dirs ([subset_manifest.json](../results/subset_manifest.json), [fig1_corpus_skew_and_sampling.png](../results/figures/fig1_corpus_skew_and_sampling.png)).
 
 ## 2. Temperature Balancing (`alpha = 0.35`) & Leak-Free Holdout
 

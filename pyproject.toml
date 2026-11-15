@@ -23,8 +23,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Pretraining data (`theforecastingcompany/GiftEvalPretrain`) downloads via `huggingface_hub` + `pyarrow` above.
-# Install the 97-task `GIFT-Eval` loader from GitHub (`pip install git+https://github.com/SalesforceAIResearch/gift-eval.git`; PEP 508 forbids git URLs below).
+# For live 97-task GIFT-Eval runs, also install: pip install git+https://github.com/SalesforceAIResearch/gift-eval.git
 eval = [
     "datasets>=2.18",
     "gluonts>=0.15",

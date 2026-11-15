@@ -2,10 +2,10 @@
 
 ## 1. Zero-Shot Protocol & Internal Validation Split
 
-[scripts/eval_gifteval.py](../scripts/eval_gifteval.py#L398-L776) ([eval_metrics.py](../src/tsfm_proto/eval_metrics.py#L268-L490)) evaluates all **`97` official `Salesforce/GIFT-Eval` tasks (`326,490` windows)**, verifying **`< 1e-6` exact parity** against `gluonts.ev` (`6` soups x `3` edge-case tasks = `18/18` smoke checks). Normalized Mean Weighted Quantile Loss (`nMWQL`) and Normalized Mean Absolute Scaled Error (`nMASE`) measure per-task error directly relative to `SeasonalNaive` (`SN = 1.0`):
+[scripts/eval_gifteval.py](../scripts/eval_gifteval.py#L398-L776) ([eval_metrics.py](../src/tsfm_proto/eval_metrics.py#L268-L490)) evaluates all **`97` official `Salesforce/GIFT-Eval` tasks (`326,490` windows)**, verifying **`< 1e-6` exact parity** against `gluonts.ev` (`6` soups x `3` edge-case tasks = `18/18` smoke checks). Normalized Mean Weighted Quantile Loss (`nMWQL`) and Normalized Mean Absolute Scaled Error (`nMASE`) measure per-task error directly relative to `SeasonalNaive` (`SN = 1.0`, where `Run 5` achieves `nMWQL_k < 1.0` on `90 / 97 = 92.8%` of tasks):
 
 $$
-\text{nMWQL}_{k} = \frac{\text{MWQL}_{k}^{\text{model}}}{\text{MWQL}_{k}^{\text{SeasonalNaive}}}, \qquad \text{Run 5} < 1.0 \ \text{on } 90 / 97 \ (92.8\%)
+\text{nMWQL}_{k} = \frac{\text{MWQL}_{k}^{\text{model}}}{\text{MWQL}_{k}^{\text{SeasonalNaive}}}, \qquad \text{GeoMean}(\text{nMWQL}) = \left(\prod_{k=1}^{97} \text{nMWQL}_{k}\right)^{1/97}
 $$
 
 Before benchmarking `GIFT-Eval`, internal `1,500`-series validation ([val_soup_vs_last.csv](../results/val_soup_vs_last.csv)) yielded an honest **`3–3` `nMWQL` tie** between `step_20000` (better on `Runs 0, 1, 5`) and the `16k..20k` Warmup-Stable-Decay (`WSD`) soup (better on `Runs 2, 3, 4`) because `step_16000` still sits near peak LR (`2.73e-4`); all `6` `model_soup.safetensors` checkpoints were evaluated uniformly per protocol.

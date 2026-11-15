@@ -15,7 +15,7 @@ Every item below maps directly to a residual failure isolated in [docs/03_evalua
 4. **Pillar 4 (Origin-Blended Readout Frame):** Anchor non-stationary random walks (`m4_daily`) by interpolating between global context mean `mu_glob` (`mu_obs`) and trailing `W=64` origin mean `mu_loc` via a learned drift gate `lambda in [0, 1]`:
 
 $$
-\mu_{\text{dec}} = (1 - \lambda)\,\mu_{\text{glob}} + \lambda\,\mu_{\text{loc}}, \qquad \lambda \in [0, 1]
+\mu_{\text{dec}} = (1 - \lambda)\mu_{\text{glob}} + \lambda\mu_{\text{loc}}, \qquad \lambda \in [0, 1]
 $$
 
 ## Tier 2 — Data Priors, Loss & Probabilistic Calibration

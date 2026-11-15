@@ -9,16 +9,16 @@ Implemented in [src/tsfm_proto/model.py](../src/tsfm_proto/model.py#L301-L369) (
 
 ## 2. Analytical Step-0 Calibration & Damped Pinball Loss
 
-`Run 3` replaces `LeftAnchoredSoftplusHead` (whose left anchor `q_0 = 0` drifts rightward as `q_k = k (ln 2 + 1e-5)` at init, giving `3%` Step-0 `80%` prediction-interval coverage `Cov80` on `q10..q90`) with `MedianAnchoredProbitHead` ([src/tsfm_proto/heads.py](../src/tsfm_proto/heads.py#L90-L118)), stepping outward (`k = 1..10`) from the zero-initialized median (`q_10 = 0.50` in `Q21`, `u_k^+/-` = upper/lower `head.fc2` logits, `u_k^+/- = 0` at Step 0 so `log(1 + e^0) / log 2 = 1`):
+`Run 3` replaces `LeftAnchoredSoftplusHead` (whose left anchor `q_0 = 0` drifts rightward as `q_k = k * (ln 2 + 1e-5)` at init, giving `3%` Step-0 `80%` prediction-interval coverage `Cov80` on `q10..q90`) with `MedianAnchoredProbitHead` ([src/tsfm_proto/heads.py](../src/tsfm_proto/heads.py#L90-L118)), stepping outward (`k = 1..10`) from the zero-initialized median (`q_10 = 0.50` in symmetric `Q21`, `u_10` = median logit, `u_k^+ = u_(10+k)` and `u_k^- = u_(10-k)` in `head.fc2`, all `0` at Step 0 so `log(1 + e^0) / log 2 = 1`):
 
 $$
-\tilde{z}(q) = \sinh^{-1}\!\bigl(\Phi^{-1}(q)\bigr), \qquad \Delta\tilde{z}_k = \tilde{z}(q_{10 + k}) - \tilde{z}(q_{10 + k - 1}), \qquad \Delta\tilde{q}_{k}^{\pm} = \Delta\tilde{z}_k \cdot \frac{\log(1 + e^{u_k^{\pm}})}{\log 2} + 10^{-5}
+\tilde{z}_m = \sinh^{-1}\bigl(\Phi^{-1}(q_m)\bigr), \quad \Delta\tilde{q}_{k}^{\pm} = (\tilde{z}_{10+k} - \tilde{z}_{10+k-1})\frac{\log(1 + e^{u_k^{\pm}})}{\log 2} + 10^{-5}, \quad \hat{\tilde{q}}_{10 \pm k} = u_{10} \pm \sum_{j=1}^{k} \Delta\tilde{q}_{j}^{\pm}
 $$
 
-This guarantees strict monotonicity (`0.0` crossing rate) and drops Step-100 Continuous Ranked Probability Score (`raw_crps` / `CRPS`) **`5.3x`** (`3.546 -> 0.671`, `Cov80: 0.2135 -> 0.7264`; `~10x` at Step 0). Training minimizes `2x` average pinball CRPS over `Q21` (`0.01..0.99`; `9` `GIFT-Eval` deciles sliced at evaluation) in [compute_pinball_crps_loss](../src/tsfm_proto/loss.py#L34-L112), where each series `i`'s horizon-mean `2x` pinball loss `s_i` is outlier-damped by `phi_12(s_i)` and inversely weighted by `V_{g(i)}` (`group_target_count`) so multivariate groups never drown out univariate series (`Runs 1..5`):
+This guarantees strict monotonicity (`0.0` crossing rate) and drops Step-100 Continuous Ranked Probability Score (`raw_crps` / `CRPS`) **`5.3x`** (`3.546 -> 0.671`, `Cov80: 0.2135 -> 0.7264`; `~10x` at Step 0). Training minimizes `2x` average pinball CRPS over `Q21` (`0.01..0.99`; `9` `GIFT-Eval` deciles sliced at evaluation) in [compute_pinball_crps_loss](../src/tsfm_proto/loss.py#L34-L112), where each series `i`'s horizon-mean `2x` pinball loss `s_i` is outlier-damped by `phi_12(s_i)` and inversely weighted by `V_g(i)` (`group_target_count`) so multivariate groups never drown out univariate series (`Runs 1..5`):
 
 $$
-\phi_{\tau}(s_i) = \tau \log\!\left(1 + \frac{s_i}{\tau}\right) \;\; (\tau = 12.0), \qquad \mathcal{L} = \frac{\sum_{i} V_{g(i)}^{-1}\,\phi_{\tau}(s_i)}{\sum_{i} V_{g(i)}^{-1}}
+\phi_{\tau}(s_i) = \tau \log\left(1 + \frac{s_i}{\tau}\right) \quad (\tau = 12.0), \qquad \mathcal{L} = \frac{\sum_{i} V_{g(i)}^{-1} \phi_{\tau}(s_i)}{\sum_{i} V_{g(i)}^{-1}}
 $$
 
 ## 3. Warmup-Stable-Decay (`WSD`) Cooldown Soup, `GroupAttention` & Synthetic Coupling

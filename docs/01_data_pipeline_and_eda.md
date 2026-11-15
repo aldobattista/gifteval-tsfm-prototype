@@ -12,7 +12,7 @@ Raw [`theforecastingcompany/GiftEvalPretrain`](https://huggingface.co/datasets/t
 Directory sampling weights follow a power-law temperature across segment counts `N_d` in the `93` subset directories:
 
 $$
-p_d \propto N_d^{\alpha}, \qquad \alpha = 1.0 \ (\text{Run 0}) \;\longrightarrow\; \alpha = 0.35 \ (\text{Runs 1--5})
+p_d \propto N_d^{\alpha}, \qquad \alpha = 1.0 \text{ (Run 0)} \quad \longrightarrow \quad \alpha = 0.35 \text{ (Runs 1–5)}
 $$
 
 Lowering `alpha` from `1.0` to `0.35` compresses the max/min sampling ratio `162x` (`2,500.0x -> 15.5x`, normalized entropy `0.825 -> 0.954`) without losing dataset hierarchy. [`SubsetDatasetStore`](../src/tsfm_proto/data.py#L143-L373) ([`horizon_for_freq`](../src/tsfm_proto/data.py#L60-L81)) holds out the tail `[-H_freq:]` across `1,500` qualifying segments (`66` of `87` qualifying datasets; realized `H_freq = 8..48` from the `6..60` cadence schedule) and permanently removes it from training views and synthetic `TSMixup`. Full-corpus EDA also reveals **`0 / 152` `10`-second (`10S`) cadence directories**—directly explaining zero-shot error spikes on `GIFT-Eval` `10S` cloud tasks.
@@ -22,7 +22,7 @@ Lowering `alpha` from `1.0` to `0.35` compresses the max/min sampling ratio `162
 Implemented in [src/tsfm_proto/scaling.py](../src/tsfm_proto/scaling.py#L21-L84) (`Runs 2..5` use `observed_frozen_origin` on observed context mean `mu_obs` and std `s_obs`, causally forward-filling internal `NaN` gaps while zeroing all-missing patches; `Runs 0..1` used `naive_zero_fill` before moment estimation):
 
 $$
-\tilde{y}_t = \sinh^{-1}\!\left(\frac{y_t - \mu_{\text{obs}}}{\sigma_{\text{obs}}}\right), \qquad \sigma_{\text{obs}} = s_{\text{obs}} \ \text{for } s_{\text{obs}} > \max\!\bigl(10^{-6}\lvert \mu_{\text{obs}} \rvert,\, 10^{-12}\bigr)
+\tilde{y}_t = \sinh^{-1}\left(\frac{y_t - \mu_{\text{obs}}}{\sigma_{\text{obs}}}\right), \qquad \sigma_{\text{obs}} = s_{\text{obs}} \text{ for } s_{\text{obs}} > \max\bigl(10^{-6}\lvert \mu_{\text{obs}} \rvert, 10^{-12}\bigr)
 $$
 
 - Replacing a fixed `+0.01` floor with relative variance checking (falling back to `1e-3 * |mu_obs|` for non-zero constants, or `eps_sigma = 0.01` for near-zero flat windows with `|mu_obs|, s_obs <= 1e-12`) yields `1.50e-15` `float64` invariance when rescaling `[1e-6, 1e-5]` micro-SI signals to `[1, 10]` (`< 5e-5` inside `float32`-cast patch stems).

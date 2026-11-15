@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import sys
 import warnings
 from dataclasses import replace
 from pathlib import Path
@@ -53,7 +54,7 @@ def test_subset_schema_temperature_and_val_truncation() -> None:
     store = SubsetDatasetStore(SUBSET_DIR, val_num_series=1500)
     assert len(store._val_specs) == 1500
 
-    # Alpha=0.35 must strictly flatten top-k sampling dominance relative to uniform alpha=1.0.
+    # Alpha=0.35 must strictly flatten top-k sampling dominance relative to proportional alpha=1.0.
     p_unif = store.sampling_probs(1.0)
     p_temp = store.sampling_probs(0.35)
     assert np.isclose(p_unif.sum(), 1.0)
@@ -207,12 +208,12 @@ def _load_build_subset_module():
     spec = importlib.util.spec_from_file_location("build_subset_mod", PROJECT_ROOT / "scripts" / "build_subset.py")
     assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
     spec.loader.exec_module(mod)
     return mod
 
 
-def test_horizon_for_freq_and_norm_freq_bucket_regex() -> None:
-    build_subset = _load_build_subset_module()
+def test_horizon_for_freq_and_normalize_pandas_freq() -> None:
     expected_h = {
         "MS": 18,
         "QS": 8,
@@ -228,18 +229,17 @@ def test_horizon_for_freq_and_norm_freq_bucket_regex() -> None:
     for fq, h in expected_h.items():
         assert horizon_for_freq(fq) == h, f"horizon_for_freq({fq!r}) mismatch"
 
-    expected_b = {
-        "W-TUE": "W",
-        "W-THU": "W",
-        "MS": "M",
-        "QS": "Q",
-        "Q-OCT": "Q",
-        "YS": "Y",
-        "10S": "S",
-        "5T": "T",
+    expected_norm = {
+        "W-TUE": "W-TUE",
+        "M": "ME",
+        "Q-OCT": "QE-OCT",
+        "A-DEC": "YE-DEC",
+        "10S": "10s",
+        "5T": "5min",
+        "H": "h",
     }
-    for fq, bucket in expected_b.items():
-        assert build_subset._norm_freq_bucket(fq) == bucket, f"_norm_freq_bucket({fq!r}) mismatch"
+    for fq, norm in expected_norm.items():
+        assert normalize_pandas_freq(fq) == norm, f"normalize_pandas_freq({fq!r}) mismatch"
 
 
 def test_cap_series_arrays_disjoint_and_store_excludes_hist(tmp_path: Path) -> None:

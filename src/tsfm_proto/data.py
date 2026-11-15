@@ -7,13 +7,6 @@ in ``train_views`` (excluding ``__hist`` slices when constructing new indices),
 and exposes deterministic CPU-only worker RNG streams.
 """
 
-## General: it defines the class SubsetDatasetStore, the whole data used for training. It is instantiated in train.py (at the beginning to create the validaiton dataset; within DataLoader to generate the data)
-##--> 3 main functions:
-##    1. [:-H_freq] in load_train_dir: it retains the last H_freq steps of 1500 series for internal validation and it discards from the memory when it loads the training, such that the model 
-##       can never see the future
-##    2. sampling_probs(alpha=0.35): it applies the temperature to reduce the unbalance between big and small datasets. d is the dataset, Nd is the number of series in the dataset.
-##        the prob of sampling from dataset d is pd~Nd^alpha and here we set alpha=0.35 to balance the sampling procedure between big and small datasets
-##    3. sample_train_item: sample a time series (real or synthetic)
 from __future__ import annotations
 
 import hashlib
@@ -91,10 +84,10 @@ def horizon_for_freq(freq: str) -> int:
 def _align_cov_width(cov: np.ndarray, target_len: int) -> np.ndarray:
     """Align covariate array ``[V_c, T_c]`` to ``target_len`` by tail-slicing or left-NaN padding."""
     arr = np.asarray(cov, dtype=np.float32)
-    if arr.ndim == 1:
-        arr = arr[None, :]
     if arr.shape[0] == 0 or target_len <= 0:
         return np.zeros((0, max(target_len, 0)), dtype=np.float32)
+    if arr.ndim == 1:
+        arr = arr[None, :]
     t_c = arr.shape[1]
     if t_c == target_len:
         return np.array(arr, dtype=np.float32, copy=True)
@@ -365,7 +358,7 @@ class SubsetDatasetStore:
                 if tgt.ndim == 1:
                     tgt = tgt[None, :]
                 cov_aligned = _align_cov_width(c_list[pos], tgt.shape[1])
-                cov_ctx = cov_aligned[:, :-h_freq] if cov_aligned.shape[0] > 0 else np.zeros((0, tgt.shape[1] - h_freq), dtype=np.float32)
+                cov_ctx = cov_aligned[:, :-h_freq]
                 examples.append(
                     ValExample(
                         dataset_name=str(ds_col[pos]),

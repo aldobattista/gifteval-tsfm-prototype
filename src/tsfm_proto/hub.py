@@ -48,6 +48,7 @@ def build_float64_soup(
             acc[k] = v64 if k not in acc else (acc[k] + v64)
     n = float(len(snapshot_paths))
     averaged = {k: (v / n).to(torch.float32).contiguous() for k, v in acc.items()}
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     save_file(averaged, str(out_path))
     return out_path
 
@@ -62,8 +63,8 @@ def from_pretrained(
     """Load ``(TSFMModel, TSFMConfig)`` offline-first, falling back to Hugging Face Hub.
 
     Checks:
-      1. ``run_name_or_dir`` directly if it is a directory containing ``config.json``.
-      2. ``checkpoints_root / run_name_or_dir``.
+      1. ``run_name_or_dir`` directly if it is a directory containing ``config.json`` and ``filename``.
+      2. ``checkpoints_root / run_name_or_dir`` containing ``config.json`` and ``filename``.
       3. Remote ``hf_repo_id`` subfolder ``run_name_or_dir`` via ``hf_hub_download``.
     """
     if checkpoints_root is None:
@@ -74,18 +75,19 @@ def from_pretrained(
                 break
 
     cand = Path(run_name_or_dir)
+    local_dir: Path | None = None
     if cand.is_dir() and (cand / "config.json").exists() and (cand / filename).exists():
-        ckpt_dir = cand
-        cfg = TSFMConfig.from_json(ckpt_dir / "config.json")
-        state = load_file(str(ckpt_dir / filename), device="cpu")
+        local_dir = cand
     elif (
         checkpoints_root is not None
         and (checkpoints_root / str(run_name_or_dir) / "config.json").exists()
         and (checkpoints_root / str(run_name_or_dir) / filename).exists()
     ):
-        ckpt_dir = checkpoints_root / str(run_name_or_dir)
-        cfg = TSFMConfig.from_json(ckpt_dir / "config.json")
-        state = load_file(str(ckpt_dir / filename), device="cpu")
+        local_dir = checkpoints_root / str(run_name_or_dir)
+
+    if local_dir is not None:
+        cfg = TSFMConfig.from_json(local_dir / "config.json")
+        state = load_file(str(local_dir / filename), device="cpu")
     elif hf_repo_id is not None:
         sub = str(run_name_or_dir)
         try:

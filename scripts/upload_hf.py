@@ -19,9 +19,11 @@ def _build_model_card(repo_id: str, results_dir: Path, staged_runs: list[str]) -
     summary_csv = results_dir / "gifteval_ablation_summary.csv"
     if summary_csv.exists():
         df = pd.read_csv(summary_csv)
+        if staged_runs:
+            df = df[df["run_name"].isin(staged_runs)]
         raw = df[df["postproc"] == "raw"].sort_values("run_name")
         if not raw.empty:
-            cols = [c for c in ["run_name", "postproc", "geo_nmwql", "geo_nmase", "mean_cov80"] if c in df.columns]
+            cols = [c for c in ["run_name", "n_params", "postproc", "geo_nmwql", "geo_nmase", "mean_cov80"] if c in df.columns]
             headers = " | ".join(cols)
             sep = " | ".join("---" for _ in cols)
             best_pp = df[df["postproc"] == "sym_avg_clamp"].sort_values("run_name")
@@ -38,6 +40,8 @@ def _build_model_card(repo_id: str, results_dir: Path, staged_runs: list[str]) -
     runs_list = "\n".join(f"- `{r}`" for r in staged_runs)
     return f"""---
 library_name: pytorch
+datasets:
+- theforecastingcompany/GiftEvalPretrain
 tags:
 - time-series
 - forecasting
@@ -47,7 +51,7 @@ tags:
 
 # {repo_id}
 
-Checkpoints and `GIFT-Eval` benchmark artifacts for **`gifteval-tsfm-prototype`**, trained on a stratified `2.74 GB` compressed Parquet subset (`93` dataset directories, `96,831` series) of [`theforecastingcompany/GiftEvalPretrain`](https://huggingface.co/datasets/theforecastingcompany/GiftEvalPretrain).
+Checkpoints and `GIFT-Eval` benchmark artifacts for **`gifteval-tsfm-prototype`** (`TSFMModel`, `14.82M -> 16.32M` parameters), trained on a stratified `2.74 GB` compressed Parquet subset (`93` dataset directories, `96,831` capped segments) of [`theforecastingcompany/GiftEvalPretrain`](https://huggingface.co/datasets/theforecastingcompany/GiftEvalPretrain).
 
 ## Included Runs
 {runs_list}
@@ -55,8 +59,16 @@ Checkpoints and `GIFT-Eval` benchmark artifacts for **`gifteval-tsfm-prototype`*
 ## 97-Task GIFT-Eval Summary (Soup Checkpoints)
 {summary_md}
 
+## Quick Usage
+
+```python
+from tsfm_proto.hub import from_pretrained
+
+model, cfg = from_pretrained("run5_coupled_synth_mix", hf_repo_id="{repo_id}")
+```
+
 ## Artifacts Included
-- `checkpoints/run*/model_soup.safetensors` & `config.json`
+- `checkpoints/run*/model_soup.safetensors` & `checkpoints/run*/config.json`
 - `results/*.csv` (including `gifteval_ablation_summary.csv`, `gifteval_leaderboard_comparison.csv`, `train_metrics_history.csv`, and per-task CSVs)
 """
 

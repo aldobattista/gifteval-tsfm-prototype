@@ -69,10 +69,10 @@ def compute_pinball_crps_loss(
         if vals.numel() == 0:
             loss = raw_crps
         else:
-            raw_sids = series_id[valid_step]
+            raw_sids = series_id[valid_step].long()
             b_stride = int(raw_sids.max().item()) + 1
             b_idx = (
-                torch.arange(pred.shape[0], device=pred.device, dtype=series_id.dtype)
+                torch.arange(pred.shape[0], device=pred.device, dtype=torch.long)
                 .view(-1, 1, 1)
                 .expand_as(series_id)
             )

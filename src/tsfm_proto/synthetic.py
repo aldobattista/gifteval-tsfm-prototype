@@ -5,8 +5,6 @@ series used in ``TSMixup`` are drawn strictly from training-pool ``SeriesItem``s
 after stripping ``[-H_freq:]`` validation holdout tails in ``SubsetDatasetStore``.
 """
 
-# Generates synthetic series on the fly to augument the standar real series dataset with more data with covariates utilization
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -57,7 +55,7 @@ def _sample_kernel_synth_1d(rng: np.random.Generator, length: int) -> np.ndarray
     noise_std = float(rng.uniform(0.03, 0.25))
     signal += rng.normal(0.0, noise_std, size=length)
 
-    # Apply random affine scale/shift (and optional positive/integer projection).
+    # Apply random affine scale/shift (and optional non-negative projection).
     scale = float(np.exp(rng.uniform(-1.5, 4.0)))
     shift = float(rng.normal(0.0, 2.0)) * scale
     out = signal * scale + shift

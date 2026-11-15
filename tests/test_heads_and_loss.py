@@ -407,8 +407,6 @@ def test_hub_partial_local_dir_falls_back_cleanly(tmp_path: Path) -> None:
     partial_dir.mkdir(parents=True)
     save_file({"dummy": torch.zeros(1)}, str(partial_dir / "model_soup.safetensors"))
 
-    import pytest
-
     with pytest.raises(FileNotFoundError, match="Could not find"):
         from_pretrained("partial_run", checkpoints_root=tmp_path, hf_repo_id=None)
 

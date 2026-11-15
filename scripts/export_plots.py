@@ -6,11 +6,11 @@ import argparse
 from pathlib import Path
 
 import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
 
 DEFAULT_PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -183,7 +183,7 @@ def plot_training_curves(ckpt_root: Path, results_dir: Path, out_dir: Path) -> N
     inset_ax = axes[0].inset_axes([0.44, 0.52, 0.53, 0.43])
 
     has_nmwql = False
-    star_offsets = np.linspace(-950.0, 950.0, len(_RUN_ORDER))
+    star_offsets = np.linspace(-1150.0, 1150.0, len(_RUN_ORDER))
     for r_idx, rname in enumerate(_RUN_ORDER):
         sub = hist_df[hist_df["run_name"] == rname]
         if sub.empty:
@@ -217,7 +217,7 @@ def plot_training_curves(ckpt_root: Path, results_dir: Path, out_dir: Path) -> N
                     [x_star],
                     [soup_val],
                     marker="*",
-                    s=115,
+                    s=95,
                     color=col,
                     edgecolors="#1A202C",
                     linewidths=0.6,
@@ -233,7 +233,7 @@ def plot_training_curves(ckpt_root: Path, results_dir: Path, out_dir: Path) -> N
     axes[0].text(
         0.02,
         0.95,
-        "Step-100 init CRPS:\nR0–2 Softplus ~3.55\nR3–5 Probit ~0.67",
+        "Step-100 CRPS:\nR0–2 Softplus ~3.55\nR3–5 Probit ~0.67",
         transform=axes[0].transAxes,
         va="top",
         fontsize=7.3,
@@ -264,7 +264,7 @@ def plot_training_curves(ckpt_root: Path, results_dir: Path, out_dir: Path) -> N
             [],
             [],
             marker="*",
-            s=115,
+            s=95,
             color="#F8FAFC",
             edgecolors="#0F172A",
             linewidths=1.0,
@@ -273,7 +273,7 @@ def plot_training_curves(ckpt_root: Path, results_dir: Path, out_dir: Path) -> N
         axes[1].set_title("Held-Out Internal Validation (66 Datasets, Geometric Mean nMWQL)")
         axes[1].set_ylabel("Validation nMWQL (Lower Better)")
         axes[1].set_ylim(0.49, 1.04)
-        axes[1].set_xlim(1500, 24500)
+        axes[1].set_xlim(1500, 24800)
         axes[1].set_xticks([2000, 6000, 10000, 15000, 20000, 22800])
         axes[1].set_xticklabels(["2k", "6k", "10k", "15k", "20k", "Soup"])
     else:
@@ -364,22 +364,33 @@ def plot_ablation_waterfall(summary_csv: Path, out_dir: Path) -> None:
             ax.legend(loc="upper right", fontsize=8.2)
 
         for idx, val in enumerate(plot_rows[geo_col]):
-            text_y = float(val) + 0.0028
-            for ref_y in sorted(ref_lines):
-                if ref_y - 0.0075 < text_y < ref_y + 0.0025:
-                    text_y = ref_y + 0.0025
-            ax.text(
-                x[idx],
-                text_y,
-                f"{float(val):.4f}",
-                ha="center",
-                va="bottom",
-                fontsize=8.2,
-                fontweight="bold" if idx in (0, len(plot_rows) - 1) else "normal",
-                color="#1A202C",
-                bbox={"facecolor": "white", "alpha": 0.94, "edgecolor": "none", "pad": 0.8},
-                zorder=5,
-            )
+            val_f = float(val)
+            tight_under_ref = any(0.0 <= (ref_y - val_f) < 0.0065 for ref_y in ref_lines)
+            if tight_under_ref:
+                ax.text(
+                    x[idx],
+                    val_f - 0.0022,
+                    f"{val_f:.4f}",
+                    ha="center",
+                    va="top",
+                    fontsize=8.2,
+                    fontweight="bold",
+                    color="white",
+                    zorder=5,
+                )
+            else:
+                ax.text(
+                    x[idx],
+                    val_f + 0.0016,
+                    f"{val_f:.4f}",
+                    ha="center",
+                    va="bottom",
+                    fontsize=8.2,
+                    fontweight="bold" if idx in (0, len(plot_rows) - 1) else "normal",
+                    color="#1A202C",
+                    bbox={"facecolor": "white", "alpha": 0.92, "edgecolor": "none", "pad": 0.35},
+                    zorder=5,
+                )
         ax.set_xticks(x)
         ax.set_xticklabels(plot_rows["label"], fontsize=8.2)
         ax.set_ylim(*ylims)
@@ -414,7 +425,7 @@ def plot_slices_and_blackout(slices_csv: Path, blackout_csv: Path, out_dir: Path
             tick_labels = [
                 "Overall (n=97)"
                 if str(s) == "Overall (97)"
-                else (f"{s} (n={int(n_map[s])})" if "(97)" not in str(s) else str(s))
+                else f"{s} (n={int(n_map[s])})"
                 for s in piv.index
             ]
             ax.set_xticklabels(tick_labels, rotation=32, ha="right", fontsize=8.5)
@@ -495,7 +506,7 @@ def plot_slices_and_blackout(slices_csv: Path, blackout_csv: Path, out_dir: Path
 
             handles, labels = ax.get_legend_handles_labels()
             step_map = {"0": "0 missing steps", "20": "20 steps (0.6P)", "64": "64 steps (2.0P)"}
-            clean_labels = [step_map.get(str(l), str(l)) for l in labels]
+            clean_labels = [step_map.get(str(lbl), str(lbl)) for lbl in labels]
             ax.legend(
                 handles,
                 clean_labels,

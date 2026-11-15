@@ -61,8 +61,6 @@ def trim_leading_missing(
         lead = t_len - 1
     else:
         lead = int(np.argmax(any_fin))
-        if lead >= t_len:
-            lead = t_len - 1
     tgt_out = target[:, lead:]
     cov_out = past_cov[:, lead:] if (past_cov is not None and past_cov.shape[1] == t_len) else past_cov
     return tgt_out, cov_out, lead
@@ -274,7 +272,6 @@ def pack_strip_batch(
         if not np.isfinite(hor_tgt).any():
             continue
 
-        fallback_mu_sigma: tuple[np.ndarray, np.ndarray] | None = None
         if cfg.history_blackout_prob > 0.0 and float(rng.random()) < cfg.history_blackout_prob:
             # Compute moments strictly post-blackout (matching eval_metrics blackout stress tests),
             # falling back safely to (0, 1) inside compute_scale_stats if zero finite steps survive.
@@ -294,7 +291,6 @@ def pack_strip_batch(
             scaling_mode=cfg.scaling_mode,
             use_local_scale_and_lags=cfg.use_local_scale_and_lags,
             eps_sigma=cfg.eps_sigma,
-            fallback_mu_sigma=fallback_mu_sigma,
         )
 
         col_end = col_start + n_seg

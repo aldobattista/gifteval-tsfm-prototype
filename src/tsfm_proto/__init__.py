@@ -1,4 +1,4 @@
-"""Prototype time-series foundation model library (`tsfm_proto`)."""
+"""Prototype time-series foundation model library (``tsfm_proto``)."""
 
 from tsfm_proto.config import DECILE_LEVELS, Q21_LEVELS, TSFMConfig
 from tsfm_proto.eval_metrics import EvalEntry, PredictionOutput, predict_entries, score_task_fast

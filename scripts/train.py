@@ -16,7 +16,7 @@ import os
 import time
 from dataclasses import replace
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 
 import numpy as np
 import pandas as pd
@@ -165,7 +165,7 @@ def _group_attn_lr_multiplier(step: int, cfg: TSFMConfig) -> float:
     return 0.20 * base_mult
 
 
-def _init_wandb(cfg: TSFMConfig, mode: str, run_dir: Path):
+def _init_wandb(cfg: TSFMConfig, mode: str, run_dir: Path) -> Any:
     """Initialize W&B with graceful offline fallback if online network is unavailable."""
     if mode == "disabled":
         return None
@@ -539,27 +539,28 @@ def main() -> None:
     soup_metrics = evaluate_val_split(model, cfg, val_examples, device=device, batch_size=32)
 
     steady_ms = float(np.median(step_times_ms[min(10, len(step_times_ms) // 2) :]))
-    _upsert_val_comparison_row(
-        args.results_dir / "val_soup_vs_last.csv",
-        {
-            "run_name": cfg.run_name,
-            "n_params": n_params,
-            "total_steps": cfg.total_steps,
-            "steady_ms_per_step": round(steady_ms, 2),
-            "last_val_nmase": round(last_metrics["val_nmase"], 6),
-            "soup_val_nmase": round(soup_metrics["val_nmase"], 6),
-            "last_val_nmwql": round(last_metrics["val_nmwql"], 6),
-            "soup_val_nmwql": round(soup_metrics["val_nmwql"], 6),
-            "last_val_mase": round(last_metrics["MASE[0.5]"], 6),
-            "soup_val_mase": round(soup_metrics["MASE[0.5]"], 6),
-            "last_val_mwql": round(last_metrics["mean_weighted_sum_quantile_loss"], 6),
-            "soup_val_mwql": round(soup_metrics["mean_weighted_sum_quantile_loss"], 6),
-            "last_val_crps": round(last_metrics["val_crps"], 6),
-            "soup_val_crps": round(soup_metrics["val_crps"], 6),
-            "last_val_cov80": round(last_metrics["coverage_80"], 6),
-            "soup_val_cov80": round(soup_metrics["coverage_80"], 6),
-        },
-    )
+    if cfg.total_steps >= orig_total_steps and args.val_limit is None:
+        _upsert_val_comparison_row(
+            args.results_dir / "val_soup_vs_last.csv",
+            {
+                "run_name": cfg.run_name,
+                "n_params": n_params,
+                "total_steps": cfg.total_steps,
+                "steady_ms_per_step": round(steady_ms, 2),
+                "last_val_nmase": round(last_metrics["val_nmase"], 6),
+                "soup_val_nmase": round(soup_metrics["val_nmase"], 6),
+                "last_val_nmwql": round(last_metrics["val_nmwql"], 6),
+                "soup_val_nmwql": round(soup_metrics["val_nmwql"], 6),
+                "last_val_mase": round(last_metrics["MASE[0.5]"], 6),
+                "soup_val_mase": round(soup_metrics["MASE[0.5]"], 6),
+                "last_val_mwql": round(last_metrics["mean_weighted_sum_quantile_loss"], 6),
+                "soup_val_mwql": round(soup_metrics["mean_weighted_sum_quantile_loss"], 6),
+                "last_val_crps": round(last_metrics["val_crps"], 6),
+                "soup_val_crps": round(soup_metrics["val_crps"], 6),
+                "last_val_cov80": round(last_metrics["coverage_80"], 6),
+                "soup_val_cov80": round(soup_metrics["coverage_80"], 6),
+            },
+        )
 
     writer.add_scalar("val_final/last_nmase", last_metrics["val_nmase"], cfg.total_steps)
     writer.add_scalar("val_final/soup_nmase", soup_metrics["val_nmase"], cfg.total_steps)
@@ -571,7 +572,7 @@ def main() -> None:
     writer.add_scalar("val_final/soup_mwql", soup_metrics["mean_weighted_sum_quantile_loss"], cfg.total_steps)
     writer.close()
     csv_file.close()
-    if cfg.total_steps >= orig_total_steps:
+    if cfg.total_steps >= orig_total_steps and args.val_limit is None:
         _upsert_train_history_csv(args.results_dir / "train_metrics_history.csv", cfg.run_name, metrics_csv)
     if wb_run is not None:
         wb_run.log(

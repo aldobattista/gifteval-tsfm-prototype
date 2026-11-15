@@ -463,8 +463,8 @@ def main() -> None:
             if not per_task_path.exists():
                 raise FileNotFoundError(f"Missing per-task CSV for --recompute-summaries-only: {per_task_path}")
             run_df = pd.read_csv(per_task_path)
-            run_df["frequency"] = run_df["dataset"].astype(str).apply(lambda s: s.rsplit("/", 2)[1])
-            run_df.to_csv(per_task_path, index=False)
+            if "frequency" not in run_df.columns:
+                run_df["frequency"] = run_df["dataset"].astype(str).apply(lambda s: s.rsplit("/", 2)[1])
 
             n_params = param_map.get(run_name, 0)
             if n_params == 0:
@@ -496,10 +496,34 @@ def main() -> None:
                 )
                 slice_rows.extend(_compute_slices(run_df, run_name, pp_name))
 
-        pd.DataFrame(summary_rows).to_csv(args.results_dir / "gifteval_ablation_summary.csv", index=False)
-        pd.DataFrame(slice_rows).to_csv(args.results_dir / "gifteval_slices_summary.csv", index=False)
+        updated_runs = {str(r["run_name"]) for r in summary_rows}
+        for out_path, new_rows in (
+            (args.results_dir / "gifteval_ablation_summary.csv", summary_rows),
+            (args.results_dir / "gifteval_slices_summary.csv", slice_rows),
+        ):
+            new_df = pd.DataFrame(new_rows)
+            if out_path.exists():
+                old_df = pd.read_csv(out_path)
+                if not updated_runs.issuperset(set(old_df["run_name"].astype(str))):
+                    kept = old_df[~old_df["run_name"].astype(str).isin(updated_runs)]
+                    new_df = pd.concat([kept, new_df], ignore_index=True)
+            new_df.to_csv(out_path, index=False)
+
+        for other_csv in sorted(args.results_dir.glob("gifteval_per_task_*.csv")):
+            other_run = other_csv.stem[len("gifteval_per_task_") :]
+            if other_run in per_run_raw_dfs:
+                continue
+            other_df = pd.read_csv(other_csv)
+            per_run_raw_dfs[other_run] = other_df[other_df["postproc"] == "raw"].reset_index(drop=True)
+            other_sym = other_df[other_df["postproc"] == "sym_avg_clamp"]
+            if not other_sym.empty:
+                per_run_sym_dfs[other_run] = other_sym.reset_index(drop=True)
+
         _export_leaderboard_comparison(args.results_dir, args.official_leaderboard_dir, per_run_raw_dfs, per_run_sym_dfs)
-        print("Recomputed summary, slice, and leaderboard CSVs.")
+        if args.official_leaderboard_dir is not None and args.official_leaderboard_dir.exists():
+            print("Recomputed summary, slice, and leaderboard CSVs.")
+        else:
+            print("Recomputed summary and slice CSVs (official leaderboard dir not present; kept existing leaderboard CSV).")
         return
 
     if not args.gifteval_dir.exists():

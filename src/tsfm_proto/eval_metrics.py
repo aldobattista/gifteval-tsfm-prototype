@@ -41,7 +41,7 @@ class EvalEntry:
 
 @dataclass
 class PredictionOutput:
-    """Raw, non-negativity-snapped, and full 21-quantile predictions per entry."""
+    """Raw decile, clamped/integer-snapped decile, and full 21-quantile predictions per entry."""
 
     raw_deciles: list[np.ndarray]  # list of [9, H, V_tgt]
     clamp_deciles: list[np.ndarray]  # list of [9, H, V_tgt]
@@ -158,7 +158,7 @@ def _run_chunk_batch(
 ) -> list[np.ndarray]:
     """Execute one homogeneous-width forward batch using dynamic row packing and return ``[21, H, V_tgt]``."""
     p_size = cfg.patch_size
-    c_in = 17 if cfg.use_local_scale_and_lags else 4
+    c_in = cfg.c_in
 
     # Pack jobs sequentially into mini-batches where each job keeps its rows contiguous and isolated.
     max_v = max(j.v_tgt + j.v_cov for j in jobs)
@@ -186,7 +186,7 @@ def _run_chunk_batch(
         patch_is_cov = torch.zeros((1, r_eval, l_chunk), dtype=torch.bool)
 
         row_ptr = 0
-        job_placements: list[tuple[_ChunkJob, int, int]] = []
+        job_placements: list[tuple[_ChunkJob, int]] = []
         for g_id, job in enumerate(batch_jobs):
             v_g = job.v_tgt + job.v_cov
             n_seg = job.n_seg
@@ -209,7 +209,7 @@ def _run_chunk_batch(
             if job.v_cov > 0:
                 patch_is_cov[0, r0 + job.v_tgt : r1, :n_seg] = True
 
-            job_placements.append((job, r0, g_id))
+            job_placements.append((job, r0))
             row_ptr = r1
 
         patch_inputs = patch_inputs.to(device)
@@ -241,7 +241,7 @@ def _run_chunk_batch(
                 )
         pred_np = pred_q_all[0].float().cpu().numpy()  # [R_eval, T_chunk, 21]
 
-        for job, r0, _ in job_placements:
+        for job, r0 in job_placements:
             t_hor_start = job.n_ctx * p_size
             t_hor_end = t_hor_start + job.h_chunk
             q_scaled = pred_np[r0 : r0 + job.v_tgt, t_hor_start:t_hor_end, :]  # [V_tgt, H_chunk, 21]
@@ -492,7 +492,7 @@ def score_task_fast(
 
 def _fallback_seasonality(freq_str: str) -> int:
     norm_f = normalize_pandas_freq(freq_str)
-    m = re.fullmatch(r"(\d*)([A-Za-z]+)(-[A-Za-z]+)?", norm_f)
+    m = re.fullmatch(r"(\d*)([A-Za-z]+)(-[A-Za-z0-9]+)?", norm_f)
     if not m:
         return 1
     mult = int(m.group(1)) if m.group(1) else 1

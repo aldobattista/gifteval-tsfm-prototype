@@ -9,16 +9,11 @@ This script inspects the full Hugging Face repository
 era5_2018).
 """
 
-# 2 MAIN functions to consider:
-### _select_shard_indices: it reads 4 equidistant Parquet files (0,N/3,2N/3, last one) instead of the only data-00000 to avoid geographical/alphabetic biases 
-### _cap_series_arrays:  it crops long time series up to the last 8192 steps, and if the time series length is > ~16k steps it will add ~4k steps from the history
-
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
-import re
 import shutil
 import time
 from pathlib import Path
@@ -50,30 +45,6 @@ TARGET_ARROW_SCHEMA = pa.schema(
         ("past_feat_dynamic_real", pa.list_(pa.list_(pa.float32()))),
     ]
 )
-
-
-def _norm_freq_bucket(freq: str) -> str:
-    """Map raw pandas/GluonTS frequency strings (including anchored W-TUE, Q-OCT) to coarse buckets."""
-    f = str(freq).strip()
-    m = re.fullmatch(r"(\d*)([A-Za-z]+)(-[A-Za-z0-9]+)?", f)
-    code = m.group(2).upper() if m else f.upper()
-    if code in {"S", "SEC", "SECOND", "SECONDS", "L", "U", "N"}:
-        return "S"
-    if code in {"T", "MIN", "MINUTE", "MINUTES"}:
-        return "T"
-    if code in {"H", "BH"}:
-        return "H"
-    if code in {"D", "B", "C"}:
-        return "D"
-    if code == "W":
-        return "W"
-    if code in {"M", "ME", "MS", "BM", "BME", "BMS", "CBME", "CBMS", "SM", "SMS"}:
-        return "M"
-    if code in {"Q", "QE", "QS", "BQ", "BQE", "BQS"}:
-        return "Q"
-    if code in {"A", "Y", "YE", "YS", "AS", "BA", "BY", "BYE", "BYS", "BAS"}:
-        return "Y"
-    return code
 
 
 def _select_shard_indices(n_shards: int, max_shards: int = MAX_SHARDS_PER_DIR) -> list[int]:
@@ -400,7 +371,7 @@ def main() -> None:
             if full_n == 0:
                 full_n = int(stats.get("sampled_shards_rows", sub_n))
             subset_total_series += sub_n
-            # Read lightweight column to count exact stored timesteps.
+            # Measure compressed Parquet shard size on disk.
             pq_path = args.out_dir / dname / "part-00000.parquet"
             sub_mb = pq_path.stat().st_size / (1024 * 1024)
             print(
@@ -447,8 +418,8 @@ def main() -> None:
             }
         catalog_rows.append(row)
 
-    shutil.rmtree(tmp_dir, ignore_errors=True)
     # Remove any HF cache folder hf_hub_download may have left in out_dir.parent/_hf_tmp_cache.
+    shutil.rmtree(tmp_dir, ignore_errors=True)
     catalog_df = pd.DataFrame(catalog_rows)
     catalog_path = results_dir / "eda_dataset_catalog.csv"
     catalog_df.to_csv(catalog_path, index=False)

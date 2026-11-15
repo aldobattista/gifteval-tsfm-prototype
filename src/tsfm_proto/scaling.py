@@ -61,6 +61,8 @@ def compute_scale_stats(
         for v in range(n_rows):
             mu[v], sigma[v] = _scale_equivariant_stats_1d(filled[v], eps_zero=eps_sigma)
         return mu.astype(np.float32), sigma.astype(np.float32)
+    if mode != "observed_frozen_origin":
+        raise ValueError(f"Unknown scaling_mode: {mode}")
 
     for v in range(n_rows):
         row = y64[v]

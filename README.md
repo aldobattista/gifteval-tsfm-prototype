@@ -11,7 +11,7 @@ This repository evaluates **6 progressive iterations (`Runs 0..5`)** under ident
 
 ---
 
-## Executive Summary (5-Minute Read)
+## Executive Summary
 
 - **Overall Zero-Shot Progress (`97` Official `GIFT-Eval` Tasks, Geometric Mean Relative to `Seasonal_Naive`):**
   - `Run 0` (`14.82M` Baseline): **`0.6218` `nMWQL` / `0.8905` `nMASE`** (`Cov80 = 0.768`)

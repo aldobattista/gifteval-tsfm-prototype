@@ -38,6 +38,10 @@ def test_strict_forecast_origin_causality() -> None:
     )
     model = TSFMModel(cfg).eval()
     torch.manual_seed(11)
+    # Non-zero head weights ensure causal perturbations produce measurable non-vacuous outputs.
+    torch.nn.init.normal_(model.head.fc2.weight, std=0.1)
+    torch.nn.init.normal_(model.head.fc2.bias, std=0.1)
+
     x = torch.randn(1, 4, 6, 32, cfg.c_in)
     rel = torch.tensor([-2, -1, 0, 1, 2, 3], dtype=torch.long).view(1, 1, 6).expand(1, 4, 6)
     seg = torch.arange(4, dtype=torch.long).view(1, 4, 1).expand(1, 4, 6)
@@ -48,12 +52,38 @@ def test_strict_forecast_origin_causality() -> None:
 
     with torch.no_grad():
         y1 = model(x, rel, seg, obs, grp, cov)
-        x_pert = x.clone()
-        x_pert[:, :, 3:, :, :] += 50.0  # Perturb strictly horizon patches >= +1
-        y2 = model(x_pert, rel, seg, obs, grp, cov)
+        # 1) Perturbing observed origin patch (rel=0, idx=2) must NOT leak to rel<0 (:64),
+        #    while strictly changing rel=0 (64:96) and horizon >= +1 (96:).
+        x_orig_pert = x.clone()
+        x_orig_pert[:, :, 2, :, :] += 50.0
+        y_orig_pert = model(x_orig_pert, rel, seg, obs, grp, cov)
+        assert torch.max(torch.abs(y1[:, :, :64, :] - y_orig_pert[:, :, :64, :])).item() == 0.0
+        assert torch.max(torch.abs(y1[:, :, 64:96, :] - y_orig_pert[:, :, 64:96, :])).item() > 1e-3
+        assert torch.max(torch.abs(y1[:, :, 96:, :] - y_orig_pert[:, :, 96:, :])).item() > 1e-3
 
-    # Context outputs must have zero sensitivity to future patches.
-    assert torch.max(torch.abs(y1[:, :, :96, :] - y2[:, :, :96, :])).item() == 0.0
+        # 2) Under exclude_blank_keys=True, horizon patches >= +1 cannot leak back to context (:96).
+        x_pert = x.clone()
+        x_pert[:, :, 3:, :, :] += 50.0
+        y2 = model(x_pert, rel, seg, obs, grp, cov)
+        assert torch.max(torch.abs(y1[:, :, :96, :] - y2[:, :, :96, :])).item() == 0.0
+
+        # 3) With exclude_blank_keys=False, perturbing rel=+2 (idx=4) must leave rel<=+1 (:128)
+        #    unchanged while changing rel>=+2 (128:), proving causal temporal masking independently.
+        cfg_unmasked = TSFMConfig(
+            run_name="causality_test_unmasked",
+            use_local_scale_and_lags=True,
+            head_type="median_probit",
+            use_group_attn=True,
+            exclude_blank_keys=False,
+        )
+        m_unmasked = TSFMModel(cfg_unmasked).eval()
+        m_unmasked.load_state_dict(model.state_dict())
+        y_u1 = m_unmasked(x, rel, seg, obs, grp, cov)
+        x_h2_pert = x.clone()
+        x_h2_pert[:, :, 4, :, :] += 50.0
+        y_u2 = m_unmasked(x_h2_pert, rel, seg, obs, grp, cov)
+        assert torch.max(torch.abs(y_u1[:, :, :128, :] - y_u2[:, :, :128, :])).item() == 0.0
+        assert torch.max(torch.abs(y_u1[:, :, 128:, :] - y_u2[:, :, 128:, :])).item() > 1e-3
 
 
 def test_blanked_key_isolation_and_all_nan_window_finiteness() -> None:
@@ -174,64 +204,82 @@ def test_group_attention_step0_identity_step1_grads_invariance_and_firewall() ->
     cov = torch.zeros((1, 6, 4), dtype=torch.bool)
     cov[:, 2, :] = True
 
+    # Non-vacuous Step-0 identity check (warm-start parity + shared non-zero head fc2):
+    # outputs change when inputs change, yet zero-init out_proj + cov_role_emb
+    # preserve exact 0.0 equivalence between non-group and group models.
+    torch.manual_seed(99)
+    fc2_w = torch.randn_like(m_base.head.fc2.weight) * 0.1
+    fc2_b = torch.randn_like(m_base.head.fc2.bias) * 0.1
+    m_base_nz = TSFMModel(cfg_base).eval()
+    m_base_nz.load_state_dict(m_base.state_dict())
+    m_grp_nz = TSFMModel(cfg_grp).eval()
+    m_grp_nz.load_state_dict(m_base.state_dict(), strict=False)
     with torch.no_grad():
-        # Zero-init out_proj + cov_role_emb guarantees exact Step-0 identity with non-group model.
-        y_base = m_base(x, rel, seg, obs, grp, cov)
-        y_grp = m_grp(x, rel, seg, obs, grp, cov)
+        for m_nz in (m_base_nz, m_grp_nz):
+            m_nz.head.fc2.weight.copy_(fc2_w)
+            m_nz.head.fc2.bias.copy_(fc2_b)
+        y_base = m_base_nz(x, rel, seg, obs, grp, cov)
+        y_grp = m_grp_nz(x, rel, seg, obs, grp, cov)
         assert torch.max(torch.abs(y_base - y_grp)).item() == 0.0
-
-        # Univariate row (grp=1, idx=3) must stay invariant regardless of group 0 peers or slack row 5.
-        x_alt = x.clone()
-        x_alt[:, 0:3] += 10.0
-        x_alt[:, 5] += 20.0
-        y_grp_alt = m_grp(x_alt, rel, seg, obs, grp, cov)
-        assert torch.max(torch.abs(y_grp[:, 3] - y_grp_alt[:, 3])).item() == 0.0
+        x_row3_pert = x.clone()
+        x_row3_pert[:, 3, :3, :, :] += 10.0
+        y_grp_row3 = m_grp_nz(x_row3_pert, rel, seg, obs, grp, cov)
+        assert torch.max(torch.abs(y_grp[:, 3] - y_grp_row3[:, 3])).item() > 1e-3
 
     # Step-1 updates zero-init head fc2; next step immediately sends nonzero gradients through out_proj,
     # and the following step sends full-rank nonzero gradients into GroupAttention.qkv_proj.
     m_grp.train()
-    opt = torch.optim.SGD(m_grp.parameters(), lr=1e-1)
+    opt = torch.optim.SGD(m_grp.parameters(), lr=0.2)
     y_step1 = m_grp(x, rel, seg, obs, grp, cov)
-    y_step1[:, :2, 96:, :].pow(2).mean().backward()
+    (y_step1[:, :2, 96:, :] - 2.0).pow(2).mean().backward()
     opt.step()
     opt.zero_grad()
 
     y_step2 = m_grp(x, rel, seg, obs, grp, cov)
-    y_step2[:, :2, 96:, :].pow(2).mean().backward()
+    (y_step2[:, :2, 96:, :] - 2.0).pow(2).mean().backward()
     out_grad = m_grp.blocks[3].group_attn.out_proj.weight.grad
     assert out_grad is not None and float(out_grad.abs().max().item()) > 0.0
     opt.step()
     opt.zero_grad()
 
     y_step3 = m_grp(x, rel, seg, obs, grp, cov)
-    y_step3[:, :2, 96:, :].pow(2).mean().backward()
+    (y_step3[:, :2, 96:, :] - 2.0).pow(2).mean().backward()
     qkv_grad = m_grp.blocks[3].group_attn.qkv_proj.weight.grad
     assert qkv_grad is not None and float(qkv_grad.abs().max().item()) > 0.0
+    opt.step()
+    opt.zero_grad()
 
-    # One-way firewall: after training GroupAttention weights, perturbing target rows (0,1)
-    # must produce 0.0 change in covariate row (2) latent activations through GroupAttention.
+    # Post-SGD woken model checks in CPU float32:
+    # 1) Univariate row (grp=1, idx=3) must stay invariant regardless of group 0 peers or slack row 5.
+    # 2) One-way firewall on GroupAttention: perturbing target rows (0,1) leaves cov row (2) unchanged.
+    # 3) Unobserved horizon past_cov (row 2, col 3) has 0.0 effect on targets, while observed
+    #    context past_cov (row 2, col 0) produces > 1e-4 cross-variate sensitivity in Group 0.
     m_grp.eval()
     ga = m_grp.blocks[3].group_attn
     h_in = torch.randn(1, 6, 4, cfg_grp.d_model)
     h_pert = h_in.clone()
     h_pert[:, 0:2] += 100.0
+    x_alt = x.clone()
+    x_alt[:, 0:3] += 10.0
+    x_alt[:, 5] += 20.0
     with torch.no_grad():
         c1 = ga(h_in, grp, cov)[:, 2]
         c2 = ga(h_pert, grp, cov)[:, 2]
         assert torch.max(torch.abs(c1 - c2)).item() == 0.0
 
-        # Unobserved horizon past_cov (row 2, col 3) must produce 0.0 change in target horizon predictions,
-        # while observed context past_cov (row 2, col 0) produces a non-zero cross-variate effect.
+        y_base_eval = m_grp(x, rel, seg, obs, grp, cov)
+        y_alt_eval = m_grp(x_alt, rel, seg, obs, grp, cov)
+        assert torch.max(torch.abs(y_base_eval[:, 3] - y_alt_eval[:, 3])).item() == 0.0
+
         x_hor_cov = x.clone()
         x_hor_cov[:, 2, 3, :, :] += 50.0
-        y_base_eval = m_grp(x, rel, seg, obs, grp, cov)
         y_hor_cov = m_grp(x_hor_cov, rel, seg, obs, grp, cov)
         assert torch.max(torch.abs(y_base_eval[:, :2, 96:, :] - y_hor_cov[:, :2, 96:, :])).item() == 0.0
 
         x_ctx_cov = x.clone()
         x_ctx_cov[:, 2, 0, :, :] += 50.0
         y_ctx_cov = m_grp(x_ctx_cov, rel, seg, obs, grp, cov)
-        assert torch.max(torch.abs(y_base_eval[:, :2, 96:, :] - y_ctx_cov[:, :2, 96:, :])).item() > 0.0
+        assert torch.max(torch.abs(y_base_eval[:, :2, 96:, :] - y_ctx_cov[:, :2, 96:, :])).item() > 1e-4
 
         # Verify bfloat16 univariate & slack packing invariance on MPS when available.
         if torch.backends.mps.is_available():

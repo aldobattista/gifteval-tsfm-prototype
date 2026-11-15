@@ -700,7 +700,7 @@ _ARCHITECTURE_TIKZ_TEX = r"""\documentclass[border=8pt]{standalone}
 \node[paneltitle, anchor=south] at (8.20, 3.05) {TRANSFORMER STACK};
 \node[attnblock, minimum width=1.6cm, minimum height=0.92cm, rotate=90]
   at (7.18, 1.78) {Temporal\\attn (RoPE)};
-\node[attnblock, minimum width=1.6cm, minimum height=0.92cm, rotate=90]
+\node[attnblock, densely dashed, minimum width=1.6cm, minimum height=0.92cm, rotate=90]
   at (8.20, 1.78) {Group attn\\(L3, L7)};
 \node[archblock, minimum width=1.6cm, minimum height=0.92cm, rotate=90]
   at (9.22, 1.78) {SwiGLU\\FFN};

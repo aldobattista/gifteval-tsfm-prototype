@@ -20,8 +20,8 @@ $$
 
 ## Tier 2 — Data Priors, Loss & Probabilistic Calibration
 
-- **Pillar 5 (`TSMixup` + GARCH Burst Priors + Adaptive Lags):** Inject stochastic volatility clustering (`GARCH` heteroskedastic volatility) and frequency-adaptive seasonal lags (`S in {144, 288, 360, 720, 1440}`) so sharp telemetry spikes are not averaged away (`bizitobs_* Cov80: 0.290 -> ~0.80`).
-- **Pillar 6 (Frequency-Stratified Loss & Tail Calibration):** Balance gradient magnitude across cadences (`10S` to annual `A`), optimize `51`-quantile dense grids with Student-t extreme-tail heads, and average multi-seed cooldown soups from later cooldown points (the low-LR tail of cooldown, e.g. final `10–12%` of steps `0.88 * S_end .. S_end`, avoiding early-cooldown high-LR snapshots like `step_16000`).
+- **Pillar 5 (`TSMixup` + `GARCH` Burst Priors + Adaptive Lags):** Inject stochastic volatility clustering (`GARCH`, generalized autoregressive conditional heteroskedastic volatility) and frequency-adaptive seasonal lags (`S in {144, 288, 360, 720, 1440}`) so sharp telemetry spikes are not averaged away (`bizitobs_*` `80%` coverage `Cov80` on `q10..q90`: `0.290 -> ~0.80`).
+- **Pillar 6 (Frequency-Stratified Loss & Tail Calibration):** Balance gradient magnitude across cadences (`10S` to annual `A`), optimize `51`-quantile dense grids with Student-t extreme-tail heads, and average multi-seed cooldown soups from later cooldown points (the low-LR tail of Warmup-Stable-Decay `WSD` cooldown, e.g. final `10–12%` of steps `0.88 * S_end .. S_end`, avoiding early-cooldown high-LR snapshots like `step_16000`).
 
 ## Non-Negotiable Engineering Guardrails
 

@@ -2,34 +2,34 @@
 
 ## 1. Zero-Shot Protocol & Internal Validation Split
 
-[scripts/eval_gifteval.py](../scripts/eval_gifteval.py) evaluates all **`97` official `Salesforce/GIFT-Eval` tasks (`326,490` windows)**, verifying **`< 1e-6` exact parity** against `gluonts.ev` (`6` soups x `3` edge-case tasks = `18/18` smoke checks). Normalized per-task metrics measure error directly relative to `SeasonalNaive`:
+[scripts/eval_gifteval.py](../scripts/eval_gifteval.py#L398-L776) ([eval_metrics.py](../src/tsfm_proto/eval_metrics.py#L268-L490)) evaluates all **`97` official `Salesforce/GIFT-Eval` tasks (`326,490` windows)**, verifying **`< 1e-6` exact parity** against `gluonts.ev` (`6` soups x `3` edge-case tasks = `18/18` smoke checks). Normalized Mean Weighted Quantile Loss (`nMWQL`) and Normalized Mean Absolute Scaled Error (`nMASE`) measure per-task error directly relative to `SeasonalNaive` (`SN = 1.0`):
 
 $$
 \text{nMWQL}_{k} = \frac{\text{MWQL}_{k}^{\text{model}}}{\text{MWQL}_{k}^{\text{SeasonalNaive}}}, \qquad \text{Run 5} < 1.0 \ \text{on } 90 / 97 \ (92.8\%)
 $$
 
-Before benchmarking `GIFT-Eval`, internal `1,500`-series validation ([val_soup_vs_last.csv](../results/val_soup_vs_last.csv)) yielded an honest **`3–3` split** between `step_20000` (better on `Runs 0, 1, 5`) and the `16k..20k` WSD soup (better on `Runs 2, 3, 4`) because `step_16000` still sits near peak LR (`2.73e-4`); all `6` `model_soup.safetensors` checkpoints were evaluated uniformly per protocol.
+Before benchmarking `GIFT-Eval`, internal `1,500`-series validation ([val_soup_vs_last.csv](../results/val_soup_vs_last.csv)) yielded an honest **`3–3` `nMWQL` tie** between `step_20000` (better on `Runs 0, 1, 5`) and the `16k..20k` Warmup-Stable-Decay (`WSD`) soup (better on `Runs 2, 3, 4`) because `step_16000` still sits near peak LR (`2.73e-4`); all `6` `model_soup.safetensors` checkpoints were evaluated uniformly per protocol.
 
 ## 2. Official `97`-Task Progression & Post-Processing Decomposition
 
-Inference modes (`0` extra params, inspected strictly on visible context): **`Raw`** slices `Q21` deciles `q10..q90`; **`+Clamp`** clips `>= 0` on non-negative series and snaps bounded integer series (`< 2^23`) via `rint`; **`+SymAvg+Clamp`** averages `0.5 * (f(y) - flip(f(-y)))` on signed series (`min < 0`) before clamping. **`Cov80`** = `q10..q90` coverage; **`64`-Blk** = `nMWQL` with `64` pre-origin steps masked (`90` tasks with `median T_ctx >= 96`, point-`SN` normalized).
+Inference modes (`0` extra params, inspected strictly on visible context): **`Raw`** slices `Q21` deciles `q10..q90`; **`+Clamp`** clips `>= 0` on non-negative series and snaps bounded integer series (`< 2^23`) via `rint`; **`+SymAvg+Clamp`** averages `0.5 * (f(y) - flip(f(-y)))` on signed series (`min < 0`) before clamping. **`Cov80`** = `80%` prediction-interval coverage (`q10..q90`); **`Low-Res`** = `A/Q/M/W` (`15` tasks, including `Y` alias); **`64`-Blk** = `nMWQL` with `64` pre-origin Contiguous Patch Masking (`CPM`) steps blanked across `90` qualifying tasks (`median T_ctx >= 96`, excluding `A/Y/Q`), normalized by repeat-decile **`Point-SN`** (`Run 5` scores `0.6661` unblanked vs `0.5946` decile-`SN` across `97` tasks).
 
-| Run | `Raw` `nMWQL / nMASE` | `+Clamp` `nMWQL` | `+SymAvg+Clamp` `nMWQL / nMASE` | `Cov80` (`Raw -> Sym`) | `64`-Blk `nMWQL` (`90` tasks) | `nMWQL` Wins (`/97`: vs `R0 Raw` / vs `SN`) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`Run 0`** `v0_baseline` | `0.6218 / 0.8905` | `0.6188` | — | `0.768` | `0.9665` | `— / 89` |
-| **`Run 1`** `data_balanced` | `0.6025 / 0.8664` | `0.5992` | — | `0.761` | `1.0287` | `66 / 89` |
-| **`Run 2`** `missingness_suffix_cpm` | `0.6050 / 0.8778` | `0.6018` | — | `0.791` | `0.8265` (`-19.7%` vs `R1`) | `67 / 90` |
-| **`Run 3`** `probit_localscale_lags` | `0.6074 / 0.8713` | `0.6038` | — | `0.773` | `0.8237` | `63 / 89` |
-| **`Run 4`** `multivariate_group_attn` | `0.6047 / 0.8678` | `0.6010` | `0.5998 / 0.8624` | `0.775 -> 0.781` | `0.8339` | `57 / 90` |
-| **`Run 5`** `coupled_synth_mix` | **`0.5946 / 0.8596`** | **`0.5907`** | **`0.5890 / 0.8523`** | `0.779 -> 0.785` | **`0.8204`** | **`67 / 90` (`71` Sym vs `R0 Raw`)** |
+| Run | `Raw` `nMWQL / nMASE` | `+Clamp` `nMWQL` | `+SymAvg+Clamp` `nMWQL / nMASE` | `Cov80` (`Raw -> Sym`) | `64`-Blk (`90` tasks) | vs `R0` (`/97`) | vs `SN` (`/97`) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **`Run 0`** `v0_baseline` | `0.6218 / 0.8905` | `0.6188` | — | `0.768` | `0.9665` | `—` | `89/97` |
+| **`Run 1`** `data_balanced` | `0.6025 / 0.8664` | `0.5992` | — | `0.761` | `1.0287` | `66/97` | `89/97` |
+| **`Run 2`** `missingness_suffix_cpm` | `0.6050 / 0.8778` | `0.6018` | — | `0.791` | `0.8265` (`-19.7%` vs `R1`) | `67/97` | `90/97` |
+| **`Run 3`** `probit_localscale_lags` | `0.6074 / 0.8713` | `0.6038` | — | `0.773` | `0.8237` | `63/97` | `89/97` |
+| **`Run 4`** `multivariate_group_attn` | `0.6047 / 0.8678` | `0.6010` | `0.5998 / 0.8624` | `0.775 -> 0.781` | `0.8339` | `57/97` | `90/97` |
+| **`Run 5`** `coupled_synth_mix` | **`0.5946 / 0.8596`** | **`0.5907`** | **`0.5890 / 0.8523`** | `0.779 -> 0.785` | **`0.8204`** | **`67/97` (`71` Sym)** | **`90/97`** |
 
-- **Critical Step-by-Step Slices (Each vs Prior Run, [fig4_disaggregated_slices.png](../results/figures/fig4_disaggregated_slices.png)):** `Run 1` cuts `Healthcare` `-23.6%` (`0.8749 -> 0.6686`) and `Econ/Fin` `-12.6%` (`0.9682 -> 0.8463`); `Run 2` lifts `H > 512` `Cov80` (`0.664 -> 0.755`) and `20/64`-step blackout ([fig5_blackout_stress.png](../results/figures/fig5_blackout_stress.png): `0.7662 / 0.8265`); `Run 3` cuts `ex-10S` by `-1.30%` (`0.5665`) despite a `+29.8%` variance spike on the `6` un-pretrained `10S` tasks; `Run 5` slashes `Past Covariates (24)` `-7.98%` (`0.7052 -> 0.6489`) and `Web/CloudOps (20)` `-9.24%` (`0.7850 -> 0.7125`). See also [fig3_ablation_waterfall.png](../results/figures/fig3_ablation_waterfall.png).
+- **Critical Step-by-Step Slices (Each vs Prior Run, [fig4_disaggregated_slices.png](../results/figures/fig4_disaggregated_slices.png)):** `Run 1` cuts `Healthcare` `-23.6%` (`0.8749 -> 0.6686`) and `Econ/Fin` `-12.6%` (`0.9682 -> 0.8463`); `Run 2` lifts `H > 512` `Cov80` (`0.664 -> 0.755`) and `20/64`-step blackout ([fig5_blackout_stress.png](../results/figures/fig5_blackout_stress.png): `0.7662 / 0.8265`); `Run 3` cuts tasks excluding the `6` `10S` series (`ex-10S`) by `-1.30%` (`0.5665`) despite a `+29.8%` variance spike on the `6` un-pretrained `10S` tasks; `Run 4` improves `Low-Res` (`0.7397`); `Run 5` slashes `Past Covariates (24)` `-7.98%` (`0.7052 -> 0.6489`) and `Web/CloudOps (20)` `-9.24%` (`0.7850 -> 0.7125`). See [fig3_ablation_waterfall.png](../results/figures/fig3_ablation_waterfall.png) and [03_checkpoint_eval_and_forecasts.ipynb](../notebooks/03_checkpoint_eval_and_forecasts.ipynb).
 
 ## 3. Official `GIFT-Eval` Leaderboard Context (`141` Complete Baselines, [gifteval_leaderboard_comparison.csv](../results/gifteval_leaderboard_comparison.csv))
 
 | Official Rank (`141` Baselines; `R5` Inserts) | Model | `geo_nMWQL` | `geo_nMASE` | `ex-10S nMWQL` | Wins vs `SN` (`nMWQL / nMASE`) |
 | :---: | :--- | :---: | :---: | :---: | :---: |
-| `#11` | `t0-gamma` (`TFC`) | `0.4520` | `0.6608` | `0.4502` | `96 / 95` |
+| `#11` | `t0-gamma` (`The Forecasting Company`, `TFC`) | `0.4520` | `0.6608` | `0.4502` | `96 / 95` |
 | `#61` | `Chronos-2 (120M)` | `0.4854` | `0.6978` | `0.4836` | `97 / 94` |
 | `#69` | `TimesFM-2.5 (200M)` | `0.4903` | `0.7050` | `0.4879` | `96 / 95` |
 | `#104` | `PatchTST` (Supervised) | `0.5870` | `0.8486` | `0.5708` | `89 / 71` |

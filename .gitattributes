@@ -1,2 +1,2 @@
-# Classify executed Jupyter walkthroughs as documentation so GitHub Linguist reports Python 100%
-*.ipynb linguist-documentation
+# Exclude executed Jupyter walkthroughs from GitHub language statistics
+*.ipynb linguist-documentation=true linguist-detectable=false

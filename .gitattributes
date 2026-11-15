@@ -1,0 +1,2 @@
+# Classify executed Jupyter walkthroughs as documentation so GitHub Linguist reports Python 100%
+*.ipynb linguist-documentation

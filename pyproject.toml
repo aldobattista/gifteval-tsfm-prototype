@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "torch>=2.2",
-    "numpy>=1.24",
+    "numpy>=1.24,<2.0",
     "pandas>=2.0",
     "pyarrow>=14.0",
     "pyyaml>=6.0",
@@ -25,15 +25,15 @@ dependencies = [
 [project.optional-dependencies]
 # For live 97-task GIFT-Eval runs, also install: pip install git+https://github.com/SalesforceAIResearch/gift-eval.git
 eval = [
-    "datasets>=2.18",
+    "datasets>=2.17",
     "gluonts>=0.15",
 ]
 dev = [
-    "datasets>=2.18",
+    "datasets>=2.17",
     "gluonts>=0.15",
     "pytest>=7.4",
     "nbconvert>=6.5",
-    "nbformat>=5.9",
+    "nbformat>=5.7",
     "jupytext>=1.16",
     "ipykernel>=6.29",
     "wandb>=0.16",

@@ -19,14 +19,12 @@ dependencies = [
     "safetensors>=0.4",
     "huggingface_hub>=0.23",
     "matplotlib>=3.8",
-    "scipy>=1.11",
-    "tqdm>=4.66",
     "tensorboard>=2.14",
 ]
 
 [project.optional-dependencies]
-# Note: install GIFT-Eval directly from GitHub (`pip install git+https://github.com/SalesforceAIResearch/gift-eval.git`),
-# since PEP 508 / PyPI wheel metadata forbids direct git URLs in optional-dependencies.
+# Pretraining data (`theforecastingcompany/GiftEvalPretrain`) downloads via `huggingface_hub` + `pyarrow` above.
+# Install the 97-task `GIFT-Eval` loader from GitHub (`pip install git+https://github.com/SalesforceAIResearch/gift-eval.git`; PEP 508 forbids git URLs below).
 eval = [
     "datasets>=2.18",
     "gluonts>=0.15",

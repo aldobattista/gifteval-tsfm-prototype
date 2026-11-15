@@ -57,7 +57,7 @@ Checkpoints and `GIFT-Eval` benchmark artifacts for **`gifteval-tsfm-prototype`*
 
 ## Artifacts Included
 - `checkpoints/run*/model_soup.safetensors` & `config.json`
-- `results/*.csv` (including `gifteval_ablation_summary.csv`, `gifteval_bootstrap_cis.csv`, `gifteval_leaderboard_comparison.csv`, `train_metrics_history.csv`, and per-task CSVs)
+- `results/*.csv` (including `gifteval_ablation_summary.csv`, `gifteval_leaderboard_comparison.csv`, `train_metrics_history.csv`, and per-task CSVs)
 """
 
 

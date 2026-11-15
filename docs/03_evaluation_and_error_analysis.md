@@ -1,4 +1,4 @@
-# 03 — Official 97-Task `GIFT-Eval` Evaluation, Bootstrap CIs & Error Analysis
+# 03 — Official 97-Task `GIFT-Eval` Evaluation & Error Analysis
 
 ## 1. Evaluation Protocol & Exact `GluonTS` Parity
 
@@ -25,9 +25,9 @@ All zero-shot evaluation in [scripts/eval_gifteval.py](../scripts/eval_gifteval.
 | `run4_multivariate_group_attn` | `16,317,344` | `248.57` | `0.531440` | `0.530329` | `0.627344` | **`0.624109`** | `0.763398` |
 | `run5_coupled_synth_mix` | `16,317,344` | `237.94` | `0.521743` | `0.528877` | `0.633796` | `0.642129` | `0.749028` |
 
-Note that `evaluate_val_split` ([eval_metrics.py:566-598](../src/tsfm_proto/eval_metrics.py#L566-L598)) normalizes internal `val_nmwql` against deterministic zero-spread **Point `Seasonal_Naive`** (matching Section 5's `90`-task blackout stress denominator rather than `GIFT-Eval`'s official probabilistic `Seasonal_Naive`). On initialization, `Run 3` transforms training dynamics: Step-100 training `raw_crps` drops **`5.3x`** (`3.5464 -> 0.6708`) and Step-100 `cov80` jumps from `0.2135` to `0.7264` (`0.0` crossing rate throughout). Across `Runs 0..5`, the `5`-snapshot soup wins internal validation cleanly on `Runs 2, 3, 4` (`3–3` split vs `step_20000`, which edges out `Runs 0, 1, 5` by `0.003–0.007` because `step_16000` sits at `LR = 2.73e-4` early in cooldown); we froze the uniform 5-snap soup rule upfront to prevent per-run checkpoint cherry-picking.
+Note that `evaluate_val_split` ([eval_metrics.py:566-598](../src/tsfm_proto/eval_metrics.py#L566-L598)) normalizes internal `val_nmwql` against deterministic zero-spread **Point `Seasonal_Naive`** (matching Section 4's `90`-task blackout stress denominator rather than `GIFT-Eval`'s official probabilistic `Seasonal_Naive`). On initialization, `Run 3` transforms training dynamics: Step-100 training `raw_crps` drops **`5.3x`** (`3.5464 -> 0.6708`) and Step-100 `cov80` jumps from `0.2135` to `0.7264` (`0.0` crossing rate throughout). Across `Runs 0..5`, the `5`-snapshot soup wins internal validation cleanly on `Runs 2, 3, 4` (`3–3` split vs `step_20000`, which edges out `Runs 0, 1, 5` by `0.003–0.007` because `step_16000` sits at `LR = 2.73e-4` early in cooldown); we froze the uniform 5-snap soup rule upfront to prevent per-run checkpoint cherry-picking.
 
-> **Why Internal Validation (`val_nmwql`) Ranks `Run 1` Ahead of `Run 5` (and `Run 4` Slightly Ahead of `Run 5` After De-Duplication) While `GIFT-Eval` Ranks `Run 5` `#1`:** The internal `1,500`-segment validation tails (`710` plain + `790` items with a paired same-`base_id` `__recent`/`__hist` mate in the local subset; **`1,425 / 1,500`** free of exact `[-H_freq:]` mate-tail sequence collisions in `train_views`—scoring `0.5662 -> 0.5195 -> 0.5324 -> 0.5286 -> 0.5289 -> 0.5301` `Point-SN` soup `val_nmwql`, and **`0.5631 -> 0.5168 -> 0.5301 -> 0.5256 -> 0.5267 -> 0.5281`** on the **`1,336`** segments [`1,326` with finite labels; `10` of the `11` zero-finite-label holdout segments remain in `1,336` while `largest_2019` `3046032__recent` is already excluded inside `mate_75`] remaining after excluding **`89`** non-constant cross-directory upstream duplicates across `london_smart_meters_with_missing`, `smart`, `largest_2017..2021`, `oikolab_weather`, and `traffic_weekly`; `0` overlap with external zero-shot `GIFT-Eval`) come from the *exact same `66` seen training datasets* (`train_views`), where `Run 1` optimizes clean-history memorization (`soup val_nmwql = 0.5200`, `last = 0.5161`). On both de-duplicated internal subsets (`1,425` and `1,336`), `Run 4` (`0.5289` / `0.5267`) also slightly edges out `Run 5` (`0.5301` / `0.5281`) by `0.0012–0.0014` because `Run 4` devotes `100%` of steps to real subset series whereas `Run 5` devotes `15%` to synthetic coupled priors and `30%` blackouts + $H \le 1024$ rollouts—regularizers that trade internal tail accuracy for a **`-1.67%` raw / `-1.80%` post-processed zero-shot gain from `Run 4` to `Run 5` on `GIFT-Eval`** (`0.6047 -> 0.5946` raw, `0.5998 -> 0.5890` `+SymAvg+Clamp`; **`-4.37%` raw / `-5.27%` post-processed cumulative vs. `Run 0`**, `0.6218 -> 0.5946` / `0.5890`).
+> **Why Internal Validation (`val_nmwql`) Ranks `Run 1` Ahead of `Run 5` While Zero-Shot `GIFT-Eval` Ranks `Run 5` `#1`:** The internal `1,500`-segment validation holdout comes from the *exact same `66` seen training datasets* (`train_views`, with `[:-H_freq]` permanently stripped), where `Run 1` optimizes clean-history in-distribution fit (`soup val_nmwql = 0.5200`, `last = 0.5161`) without synthetic mixing, blackouts, or $H \le 1024$ rollouts. By contrast, `Run 5` trades `0.0089` of internal `val_nmwql` (`0.5289`, as `Runs 2..5` inject `30%` history blackouts + $K_{\text{hor}} \le 32$ and `Run 5` mixes `15%` synthetic coupled priors as out-of-distribution regularizers) for a **`-1.67%` raw / `-1.80%` post-processed zero-shot gain from `Run 4` to `Run 5` on `GIFT-Eval`** (`0.6047 -> 0.5946` raw, `0.5998 -> 0.5890` `+SymAvg+Clamp`; **`-4.37%` raw / `-5.27%` post-processed cumulative vs. `Run 0`**, `0.6218 -> 0.5946` / `0.5890`).
 
 ---
 
@@ -51,13 +51,28 @@ Note that `evaluate_val_split` ([eval_metrics.py:566-598](../src/tsfm_proto/eval
 | **`run5_coupled_synth_mix`** | **`+SymAvg+Clamp`** | `16.32M` | **`0.589038`** | **`0.852315`** | `0.7849` |
 
 Key post-processing findings:
-- **`Run 2 -> Run 3` Decomposition (`excl-10S` vs. `10S`):** Although 97-task aggregate `nMWQL` ticks up `+0.38%` (`0.6050 -> 0.6074`), `Run 3` actually beats `Run 2` on internal validation (`0.5333 -> 0.5277`), on `97`-task `nMASE` (`0.8778 -> 0.8713`), on `56.7%` of tasks (`55/97`), and improves **`91`-task non-`10S` `nMWQL` by `-1.30%`** (`0.5740 -> 0.5665`, beating `Run 1`'s `0.5706`). The net `+0.38%` overall uptick (`-1.30%` across `91` tasks offset by `+29.8%` across `6` tasks) comes entirely from those `6` out-of-distribution `10S` tasks (`1.3441 -> 1.7451`, because `0 / 152` pretraining dirs are `10S`) before `Runs 4–5` regularize them back down (`1.3363`).
+- **`Run 2 -> Run 3` Decomposition (`excl-10S` vs. `10S`):** Although 97-task aggregate `nMWQL` ticks up `+0.38%` (`0.6050 -> 0.6074`), `Run 3` actually beats `Run 2` on internal validation (`0.5333 -> 0.5277`), on `97`-task `nMASE` (`0.8778 -> 0.8713`), on `55 / 97` (`56.7%`) tasks, and improves **`91`-task non-`10S` `nMWQL` by `-1.30%`** (`0.5740 -> 0.5665`, beating `Run 1`'s `0.5706`). The net `+0.38%` overall uptick (`-1.30%` across `91` tasks offset by `+29.8%` across `6` tasks) comes entirely from those `6` out-of-distribution `10S` tasks (`1.3441 -> 1.7451`, because `0 / 152` pretraining dirs are `10S`) before `Runs 4–5` regularize them back down (`1.3363`).
 - **`+Clamp/Snap`** (zero-overhead on cached predictions: clamping strictly non-negative observed targets at `>= 0` and rounding `< 2^23` integer series) consistently improves every iteration by `~0.5%–0.6%` (`0.5946 -> 0.5907` on `Run 5`).
 - **`+SymAvg` (Sign-Reflection Averaging):** Restricting $0.5\,(F(y)_q - F(-y)_{1-q})$ strictly to signed series with `(fin < 0.0).any()` avoids distorting skewed positive/count distributions and yields clean additive gains on zero-centered anomalies/residuals (`0.5907 -> 0.5890` `nMWQL`, `0.8556 -> 0.8523` `nMASE`).
 
-### 3b. Official 97-Task `GIFT-Eval` Leaderboard Context (`results/gifteval_leaderboard_comparison.csv`)
+### 3a. Progressive Task-Win Attribution (`97` Tasks, Single `seed = 42`)
 
-Evaluating a **`16.32M`-parameter scratch prototype** (`~8.9` hours sequential final pipeline compute [`39.3m` subset + `~7.76h` training (`7.70h` TensorBoard scalar span) + `~30m` 6-soup eval]; `~10.4` hours total unattended compute incl. initial diagnostic runs) on one laptop (`M2 Max`) against `141` complete official `GIFT-Eval` entries provides honest scale calibration (`35` rows in the curated CSV = `27` external baselines + `8` own-prototype rows, so `Run 5 (+SymAvg+Clamp)` at `table_rank = 15` places **`#15 / 28`** against the `27` curated external baselines [`14` ahead, `13` behind] and **insertion rank `#106` against `141` official baselines**):
+| Comparison | `nMWQL` Delta | `nMWQL` Wins (`97`) | `nMASE` Delta | `nMASE` Wins (`97`) |
+| :--- | :---: | :---: | :---: | :---: |
+| **`Run 1` vs `Run 0` (`Raw`)** | **`-3.11%`** | `66 / 97` (`68.0%`) | **`-2.71%`** | `63 / 97` (`64.9%`) |
+| **`Run 2` vs `Run 1` (`Raw`)** | `+0.42%` | `49 / 97` (`50.5%`) | `+1.32%` | `45 / 97` (`46.4%`) |
+| **`Run 3` vs `Run 2` (`Raw`)** | `+0.38%` | `55 / 97` (`56.7%`) | `-0.75%` | `57 / 97` (`58.8%`) |
+| **`Run 4` vs `Run 3` (`Raw`)** | `-0.44%` | `44 / 97` (`45.4%`) | `-0.40%` | `47 / 97` (`48.5%`) |
+| **`Run 5` vs `Run 4` (`Raw`)** | **`-1.67%`** | `54 / 97` (`55.7%`) | `-0.94%` | `64 / 97` (`66.0%`) |
+| **`Run 5` vs `Run 0` (`Raw`)** | **`-4.37%`** | **`67 / 97` (`69.1%`)** | **`-3.47%`** | **`67 / 97` (`69.1%`)** |
+| **`Run 5 (+SymAvg+Clamp)` vs `Run 5 (Raw)`** | `-0.94%` | **`85 / 97` (`87.6%`)** | `-0.85%` | **`72 / 97` (`74.2%`)** |
+| **`Run 5 (+SymAvg+Clamp)` vs `Run 0 (Raw)`** | **`-5.27%`** | **`71 / 97` (`73.2%`)** | **`-4.29%`** | **`72 / 97` (`74.2%`)** |
+
+*(All `6` models train once at `seed = 42` under identical `20,000`-step compute budgets and the frozen `5`-snapshot cooldown soup rule.)*
+
+### 3b. Official 97-Task `GIFT-Eval` Leaderboard Context ([gifteval_leaderboard_comparison.csv](../results/gifteval_leaderboard_comparison.csv))
+
+Evaluating a **`16.32M`-parameter scratch prototype** (`~8.9` hours sequential final pipeline compute [`39.3m` subset + `~7.76h` training (`7.70h` TensorBoard scalar span) + `~30m` 6-soup eval]; `~10.4` hours total unattended compute incl. initial diagnostic runs) on one laptop (`M2 Max`) against `141` complete official `GIFT-Eval` entries provides honest scale calibration, placing `Run 5 (+SymAvg+Clamp)` **`#15 / 28`** against the `27` curated external baselines (`14` ahead, `13` behind) and at **insertion rank `#106` across `141` official baselines** (`105` ahead, `36` beaten):
 
 | Rank (Table / Official `141`) | Model | Category | `geo_nMWQL` (97) | `geo_nMWQL` (excl-`10S`) | `geo_nMASE` (97) | Wins vs `SN` (`nMWQL / nMASE`) |
 | :---: | :--- | :--- | :---: | :---: | :---: | :---: |
@@ -79,39 +94,12 @@ Evaluating a **`16.32M`-parameter scratch prototype** (`~8.9` hours sequential f
 | `32 / 135` | `Auto_Arima` / `33 / 136` `Seasonal_Naive` | Statistical | `0.9117` / `1.0000` | `0.8758` / `1.0000` | `1.0736` / `1.0000` | `55 / 61` / `0 / 0` |
 
 Two honest takeaways stand out immediately:
-1. **`Run 5` (`0.5890`, insertion rank `#106` against the `141` official baselines — `105` ahead, `36` beaten; `90/97` `nMWQL` and `82/97` `nMASE` wins vs. `Seasonal_Naive`) genuinely learns transferable cross-domain forecasting**: running the exact same `B = 10,000` (`seed = 42`) paired bootstrap against `data/gift_eval_official_results`, `Run 5 (+SymAvg+Clamp)` achieves statistically significant paired gains (`p < 0.05` on both `97`-task and `28`-family cluster CIs) over `TimesFM-1.0` (`GMR = 0.8658`, task CI `[0.822, 0.907]`, `69/97` wins), `Chronos_base` (`GMR = 0.9032`, `[0.860, 0.947]`, `68/97`), `Moirai_small` (`GMR = 0.9057`, `[0.872, 0.938]`, `71/97`), and `Chronos_large` (`GMR = 0.9099`, `[0.865, 0.955]`, `66/97`), sits ahead on aggregate point estimate of `iTransformer` (`GMR = 0.9495`, `[0.884, 1.015]`, `56/97`), `Moirai_base` (`GMR = 0.9664`, `[0.925, 1.008]`, `46/97`), `TFT` (`GMR = 0.9740`, `[0.923, 1.026]`, `54/97`), and `Moirai_large` (`GMR = 0.9835`, `[0.941, 1.027]`, `47/97`), and statistically ties supervised `PatchTST` (`GMR = 1.0034`, `[0.960, 1.050]`, `56/97` task wins; all five within paired `95%` CIs spanning `1.0`).
+1. **`Run 5 (+SymAvg+Clamp)` (`0.5890` `geo_nMWQL`, insertion rank `#106` against the `141` official baselines — `105` ahead, `36` beaten; `90 / 97` `nMWQL` and `82 / 97` `nMASE` wins vs. `Seasonal_Naive`) genuinely learns transferable cross-domain forecasting:** against official per-task baseline scores, `Run 5 (+SymAvg+Clamp)` outperforms earlier pretrained TSFMs on both aggregate `geo_nMWQL` and per-task wins—`TimesFM-1.0` (`0.6804`, `-13.42%`, `69 / 97` wins), `Chronos_base` (`0.6521`, `-9.68%`, `68 / 97`), `Moirai_small` (`0.6504`, `-9.43%`, `71 / 97`), and `Chronos_large` (`0.6473`, `-9.01%`, `66 / 97`)—edges ahead of `iTransformer` (`0.6203`, `-5.05%`, `56 / 97`), `Moirai_base` (`0.6095`, `-3.36%`, `46 / 97`), `TFT` (`0.6047`, `-2.60%`, `54 / 97`), and `Moirai_large` (`0.5989`, `-1.65%`, `47 / 97`), and performs at near-parity with supervised `PatchTST` (`0.5870`, `+0.34%` aggregate `nMWQL`, while winning `56 / 97` individual tasks).
 2. **Excluding `10S` context-starved tasks (`geo_nmwql_excl_10s = 0.5581`) cuts `0.031` off `Run 5`'s error**, cleanly isolating the `128`-patch (`4,096`-step) window limit while quantifying the remaining `~0.10` gap to frontier long-context / full-corpus models (`Chronos-2` `0.4854` `#61`, `TimesFM-2.5` `0.4903` `#69`, `t0-gamma` `0.4520` `#11`).
 
 ---
 
-## 4. Paired Bootstrap 95% Confidence Intervals (`B = 10,000, seed = 42`)
-
-From [gifteval_bootstrap_cis.csv](../results/gifteval_bootstrap_cis.csv) (comparing every consecutive step pair + headline baseline across `97` tasks and cluster-bootstrapping across `28` source dataset families):
-
-| Comparison | Metric | Geometric Mean Ratio | `% Change` | 97-Task Paired 95% CI | 28-Family Cluster 95% CI | Task Win Rate |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **`Run 1` vs `Run 0`** | `nMWQL` | `0.9689` | **`-3.11%`** | `[0.9477, 0.9885]` | `[0.9366, 0.9915]` | `68.0%` |
-| **`Run 1` vs `Run 0`** | `nMASE` | `0.9729` | **`-2.71%`** | `[0.9554, 0.9896]` | `[0.9473, 0.9942]` | `65.0%` |
-| **`Run 2` vs `Run 1`** | `nMWQL` | `1.0042` | `+0.42%` | `[0.9940, 1.0152]` | `[0.9944, 1.0138]` | `50.5%` |
-| **`Run 2` vs `Run 1`** | `nMASE` | `1.0132` | `+1.32%` | `[1.0032, 1.0249]` | `[1.0044, 1.0233]` | `46.4%` |
-| **`Run 3` vs `Run 2`** | `nMWQL` | `1.0038` | `+0.38%` | `[0.9831, 1.0251]` | `[0.9743, 1.0402]` | `56.7%` |
-| **`Run 3` vs `Run 2`** | `nMASE` | `0.9925` | `-0.75%` | `[0.9750, 1.0084]` | `[0.9683, 1.0145]` | `58.8%` |
-| **`Run 4` vs `Run 3`** | `nMWQL` | `0.9956` | `-0.44%` | `[0.9803, 1.0095]` | `[0.9735, 1.0147]` | `45.4%` |
-| **`Run 4` vs `Run 3`** | `nMASE` | `0.9960` | `-0.40%` | `[0.9822, 1.0088]` | `[0.9784, 1.0126]` | `48.5%` |
-| **`Run 5` vs `Run 4`** | `nMWQL` | `0.9833` | **`-1.67%`** | `[0.9676, 0.9987]` | `[0.9575, 1.0044]` | `55.7%` |
-| **`Run 5` vs `Run 4`** | `nMASE` | `0.9906` | `-0.94%` | `[0.9746, 1.0071]` | `[0.9674, 1.0119]` | `66.0%` |
-| **`Run 5` vs `Run 0`** | `nMWQL` | **`0.9563`** | **`-4.37%`** | **`[0.9329, 0.9792]`** | **`[0.9178, 0.9856]`** | **`69.1%`** |
-| **`Run 5` vs `Run 0`** | `nMASE` | **`0.9653`** | **`-3.47%`** | **`[0.9448, 0.9857]`** | **`[0.9326, 0.9921]`** | **`69.1%`** |
-| **`Run 5 +SymAvg+Clamp` vs `Raw`** | `nMWQL` | `0.9906` | `-0.94%` | `[0.9871, 0.9938]` | `[0.9855, 0.9958]` | **`87.6%`** |
-| **`Run 5 +SymAvg+Clamp` vs `Raw`** | `nMASE` | `0.9915` | `-0.85%` | `[0.9879, 0.9948]` | `[0.9855, 0.9968]` | **`74.2%`** |
-| **`Run 5 +SymAvg+Clamp` vs `Run 0 Raw`** | `nMWQL` | **`0.9473`** | **`-5.27%`** | **`[0.9240, 0.9701]`** | **`[0.9107, 0.9748]`** | **`73.2%`** |
-| **`Run 5 +SymAvg+Clamp` vs `Run 0 Raw`** | `nMASE` | **`0.9571`** | **`-4.29%`** | **`[0.9364, 0.9778]`** | **`[0.9258, 0.9831]`** | **`74.2%`** |
-
-Both task-level and 28-family cluster-robust 95% CIs for `Run 1 vs Run 0`, `Run 5 vs Run 0`, and `Run 5 (+SymAvg+Clamp) vs Run 5 (Raw)` lie **strictly below `1.0`** (`p < 0.05` across dataset families, avoiding horizon pseudo-replication). All runs use a single fixed training seed (`seed = 42`), so CIs measure task/family sampling uncertainty over our benchmark evaluation rather than multi-seed training variance.
-
----
-
-## 5. Mechanism Attribution Across Disaggregated Slices & Blackout Stress
+## 4. Mechanism Attribution Across Disaggregated Slices & Blackout Stress
 
 From [gifteval_slices_summary.csv](../results/gifteval_slices_summary.csv) and [gifteval_blackout_stress.csv](../results/gifteval_blackout_stress.csv) (`Raw Neural` soups):
 
@@ -131,9 +119,9 @@ From [gifteval_slices_summary.csv](../results/gifteval_slices_summary.csv) and [
 
 ---
 
-## 6. Candid Residual Failure Analysis (`7 / 97` Tasks Above `1.0`)
+## 5. Candid Residual Failure Analysis (`7 / 97` Tasks Above `1.0`)
 
-`Run 5` outperforms `Seasonal_Naive` on **`90 / 97` (`92.8%`)** tasks on `nMWQL` (`77 / 97` raw, **`82 / 97` `+SymAvg+Clamp`** on `nMASE`). Notice two crucial scientific facts about the `7` remaining tasks above `1.0`: (a) across the **entire `152`-directory `878.26 GB` `GiftEvalPretrain` corpus, `0 / 152` directories are `10S`** (only two `1`-series `4S` shards exist, both already in our subset); and (b) we **deliberately stopped at `Run 5`** rather than launching an ad-hoc `Run 6` tuned specifically to `S = 360` after inspecting `GIFT-Eval` residuals—preventing post-hoc benchmark leakage while mapping every structural failure cleanly onto [docs/04_with_more_time_roadmap.md](04_with_more_time_roadmap.md):
+`Run 5` outperforms `Seasonal_Naive` on **`90 / 97` (`92.8%`)** tasks on `nMWQL` (`77 / 97` raw, **`82 / 97` `+SymAvg+Clamp`** on `nMASE`). Notice two crucial scientific facts about the `7` remaining tasks above `1.0`: (a) across the **entire `152`-directory `878.26 GB` `GiftEvalPretrain` corpus, `0 / 152` directories are `10S`** (only two `1`-series `4S` shards exist, both already in our subset); and (b) we **deliberately stopped at `Run 5`** rather than launching an ad-hoc `Run 6` tuned specifically to `S = 360` after inspecting `GIFT-Eval` residuals—preventing post-hoc test-set overfitting while mapping every structural failure cleanly onto [docs/04_with_more_time_roadmap.md](04_with_more_time_roadmap.md):
 
 | Task | Horizon | `Run 5` Raw `nMWQL` | `Run 5` Raw `nMASE` | Root Cause & Exact Next-Step Fix |
 | :--- | :---: | :---: | :---: | :--- |

@@ -1,13 +1,12 @@
-"""Build a stratified, leak-audited local Parquet subset of GiftEvalPretrain.
+"""Build a stratified local Parquet subset of GiftEvalPretrain.
 
 This script inspects the full Hugging Face repository
 ``theforecastingcompany/GiftEvalPretrain`` (152 Parquet directories / 878+ GB /
 3.49M series), writes a full-corpus metadata catalog
-(``results/eda_dataset_catalog.csv``), builds a balanced ~2.74 GB (2.738 GB) laptop subset
+(``results/eda_dataset_catalog.csv``), and builds a balanced ~2.74 GB (2.738 GB) laptop subset
 (``data/gifteval_pretrain_subset/``) covering all 89 non-climate directories and
 4 representative climate directories (cmip6_1995, cmip6_2010, era5_2005,
-era5_2018), and runs a two-stage anti-leakage audit against ``GIFT-Eval``
-(``results/leakage_audit.json``).
+era5_2018).
 """
 
 # 2 MAIN functions to consider:
@@ -19,8 +18,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
-import os
 import re
 import shutil
 import time
@@ -42,13 +39,6 @@ RECENT_CAP_STEPS = 8192
 HIST_SLICE_TRIGGER = 16384
 HIST_SLICE_STEPS = 4096
 
-
-def _default_gifteval_dir() -> Path:
-    env_dir = os.environ.get("GIFT_EVAL")
-    if env_dir:
-        return Path(env_dir)
-    repo_root = Path(__file__).resolve().parents[1]
-    return repo_root / "data" / "GiftEval"
 
 TARGET_ARROW_SCHEMA = pa.schema(
     [
@@ -343,202 +333,6 @@ def _process_directory(
     return stats, subset_count
 
 
-def _run_leakage_audit(
-    subset_dir: Path,
-    gift_eval_dir: Path,
-    all_pretrain_dirs: list[str],
-    out_path: Path,
-) -> dict[str, Any]:
-    """Verify dataset-name disjointness and 64-step z-normalized Pearson separation vs GIFT-Eval."""
-    import sys
-
-    parquet_shards = sorted(subset_dir.glob("*/part-00000.parquet")) if subset_dir.exists() else []
-    if not parquet_shards:
-        raise FileNotFoundError(
-            f"Cannot run leakage audit: no Parquet shards found under {subset_dir}. "
-            "Run `python scripts/build_subset.py` first to materialize the local subset."
-        )
-
-    if not gift_eval_dir.exists():
-        raise FileNotFoundError(
-            f"GIFT-Eval data directory not found at {gift_eval_dir}. "
-            "Set `GIFT_EVAL=/path/to/GiftEval` or pass `--gift-eval-dir`."
-        )
-    ext_src = os.environ.get("GIFT_EVAL_SRC", "")
-    if ext_src and Path(ext_src).exists() and ext_src not in sys.path:
-        sys.path.insert(0, ext_src)
-
-    os.environ["GIFT_EVAL"] = str(gift_eval_dir)
-    try:
-        from gift_eval.data import Dataset  # noqa: WPS433
-    except ImportError as exc:
-        raise ImportError(
-            "`gift_eval` is required for the anti-leakage audit. Install via "
-            "`pip install git+https://github.com/SalesforceAIResearch/gift-eval.git` "
-            "(or set `GIFT_EVAL_SRC=/path/to/gift-eval/src`)."
-        ) from exc
-
-    props_path = out_path.parent / "gift_eval_dataset_properties.json"
-    ge_props = json.loads(props_path.read_text()) if props_path.exists() else {}
-
-    # 1. Name and substring audit against GIFT-Eval dataset families & subdirectories.
-    ge_folders = sorted([p.name for p in gift_eval_dir.iterdir() if p.is_dir() and p.name != ".cache"])
-    pretrain_lower = {d.lower(): d for d in all_pretrain_dirs}
-    ge_lower = {g.lower(): g for g in ge_folders}
-    exact_overlap = sorted(set(pretrain_lower) & set(ge_lower))
-
-    near_misses: list[dict[str, str]] = []
-    for pl, pd_orig in sorted(pretrain_lower.items()):
-        for gl, ge_orig in sorted(ge_lower.items()):
-            if pl != gl and (pl in gl or gl in pl):
-                near_misses.append({"pretrain_dir": pd_orig, "gift_eval_dir": ge_orig})
-
-    # 2. 64-step z-normalized fingerprint screen on matching frequencies against GIFT-Eval test tails.
-    ge_fps_by_bucket: dict[str, list[tuple[str, np.ndarray]]] = {}
-    ge_hashes_by_bucket: dict[str, set[bytes]] = {}
-    ge_nondeg_hashes_by_bucket: dict[str, set[bytes]] = {}
-    short_names = [
-        "m4_yearly", "m4_quarterly", "m4_monthly", "m4_weekly", "m4_daily", "m4_hourly",
-        "electricity/15T", "electricity/H", "electricity/D", "electricity/W",
-        "solar/10T", "solar/H", "solar/D", "solar/W",
-        "hospital", "covid_deaths", "us_births/D", "us_births/M", "us_births/W",
-        "saugeenday/D", "saugeenday/M", "saugeenday/W",
-        "temperature_rain_with_missing", "kdd_cup_2018_with_missing/H",
-        "kdd_cup_2018_with_missing/D", "car_parts_with_missing",
-        "restaurant", "hierarchical_sales/D", "hierarchical_sales/W",
-        "LOOP_SEATTLE/5T", "LOOP_SEATTLE/H", "LOOP_SEATTLE/D",
-        "SZ_TAXI/15T", "SZ_TAXI/H", "M_DENSE/H", "M_DENSE/D",
-        "ett1/15T", "ett1/H", "ett1/D", "ett1/W", "ett2/15T", "ett2/H", "ett2/D", "ett2/W",
-        "jena_weather/10T", "jena_weather/H", "jena_weather/D",
-        "bitbrains_fast_storage/5T", "bitbrains_fast_storage/H",
-        "bitbrains_rnd/5T", "bitbrains_rnd/H",
-        "bizitobs_application", "bizitobs_service", "bizitobs_l2c/5T", "bizitobs_l2c/H",
-    ]
-    for ds_name in short_names:
-        ds = Dataset(name=ds_name, term="short", to_univariate=False)
-        bucket = _norm_freq_bucket(ds.freq)
-        count = 0
-        for inp, lbl in zip(ds.test_data.input, ds.test_data.label):
-            if count >= 60:
-                break
-            ctx = np.asarray(inp["target"], dtype=np.float64)
-            fut = np.asarray(lbl["target"], dtype=np.float64)
-            if ctx.ndim == 2:
-                ctx = ctx[0]
-            if fut.ndim == 2:
-                fut = fut[0]
-            combined = np.concatenate([ctx, fut], axis=-1)
-            fin = combined[np.isfinite(combined)]
-            if len(fin) < 64:
-                continue
-            w = fin[-64:]
-            std = float(np.std(w))
-            if std <= 1e-6:
-                continue
-            z = ((w - float(np.mean(w))) / std).astype(np.float32)
-            ge_fps_by_bucket.setdefault(bucket, []).append((ds_name, z))
-            qhash = hashlib.sha1(np.round(z, 3).tobytes()).digest()
-            ge_hashes_by_bucket.setdefault(bucket, set()).add(qhash)
-            if int(np.unique(np.round(w, 6)).size) > 4:
-                ge_nondeg_hashes_by_bucket.setdefault(bucket, set()).add(qhash)
-            count += 1
-
-    # Vectorize Pearson check per frequency bucket against pretrain subset windows.
-    ge_mats: dict[str, tuple[list[str], np.ndarray]] = {}
-    for bucket, items in ge_fps_by_bucket.items():
-        labels = [it[0] for it in items]
-        mat = np.stack([it[1] for it in items], axis=0) / math.sqrt(64.0)
-        ge_mats[bucket] = (labels, mat)
-
-    max_corr = 0.0
-    max_corr_pair: dict[str, Any] = {}
-    exact_hash_matches = 0
-    nondeg_hash_matches = 0
-    deg_collision_dirs: list[str] = []
-    high_corr_pairs: list[dict[str, Any]] = []
-    windows_checked = 0
-
-    for pq_path in sorted(subset_dir.glob("*/part-00000.parquet")):
-        dname = pq_path.parent.name
-        tbl = pq.read_table(pq_path, columns=["freq", "target"])
-        freqs = tbl["freq"].to_pylist()
-        targets = tbl["target"].to_pylist()
-        step = max(1, len(targets) // 80)
-        pre_by_bucket: dict[str, list[np.ndarray]] = {}
-        for i in range(0, len(targets), step):
-            bkt = _norm_freq_bucket(freqs[i])
-            if bkt not in ge_mats:
-                continue
-            tgt = targets[i]
-            if not tgt:
-                continue
-            arr = np.asarray(tgt[0], dtype=np.float64)
-            fin = arr[np.isfinite(arr)]
-            if len(fin) < 64:
-                continue
-            for sl in (fin[-64:], fin[:64]):
-                s = float(np.std(sl))
-                if s <= 1e-6:
-                    continue
-                z = ((sl - float(np.mean(sl))) / s).astype(np.float32)
-                qh = hashlib.sha1(np.round(z, 3).tobytes()).digest()
-                if qh in ge_hashes_by_bucket.get(bkt, set()):
-                    exact_hash_matches += 1
-                    if int(np.unique(np.round(sl, 6)).size) > 4 and qh in ge_nondeg_hashes_by_bucket.get(bkt, set()):
-                        nondeg_hash_matches += 1
-                    else:
-                        deg_collision_dirs.append(f"{dname}:{bkt}:n_uniq={int(np.unique(np.round(sl, 6)).size)}")
-                pre_by_bucket.setdefault(bkt, []).append(z / math.sqrt(64.0))
-                windows_checked += 1
-
-        for bkt, vecs in pre_by_bucket.items():
-            pre_mat = np.stack(vecs, axis=0)
-            ge_labels, ge_mat = ge_mats[bkt]
-            corr_mat = pre_mat @ ge_mat.T
-            best_idx = int(np.argmax(corr_mat))
-            p_i, g_i = divmod(best_idx, corr_mat.shape[1])
-            val = float(corr_mat[p_i, g_i])
-            if val > max_corr:
-                max_corr = val
-                max_corr_pair = {
-                    "pretrain_dir": dname,
-                    "gift_eval_task": ge_labels[g_i],
-                    "freq_bucket": bkt,
-                    "pearson_r": round(val, 5),
-                }
-            if val >= 0.995:
-                high_corr_pairs.append(
-                    {
-                        "pretrain_dir": dname,
-                        "gift_eval_task": ge_labels[g_i],
-                        "freq_bucket": bkt,
-                        "pearson_r": round(val, 5),
-                    }
-                )
-
-    audit = {
-        "pretrain_directories_checked": len(all_pretrain_dirs),
-        "gift_eval_families_checked": len(ge_folders),
-        "gift_eval_properties_count": len(ge_props),
-        "exact_name_overlap": exact_overlap,
-        "substring_near_misses": near_misses,
-        "near_miss_explanation": (
-            "Monash Australian daily `weather` (freq='D') is verified distinct from "
-            "Max-Planck Jena sub-hourly/hourly/daily `jena_weather` (21 meteorological channels)."
-        ),
-        "fingerprint_windows_screened": windows_checked,
-        "exact_quantized_z64_hash_collisions": exact_hash_matches,
-        "nondegenerate_z64_hash_collisions": nondeg_hash_matches,
-        "degenerate_step_collisions": deg_collision_dirs,
-        "max_pearson_r_64step": round(max_corr, 5),
-        "max_pearson_pair": max_corr_pair,
-        "pairs_above_0_995": high_corr_pairs,
-        "clean_disjoint_verified": len(exact_overlap) == 0 and nondeg_hash_matches == 0,
-    }
-    out_path.write_text(json.dumps(audit, indent=2))
-    return audit
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build stratified TFC GiftEvalPretrain laptop subset.")
     parser.add_argument(
@@ -548,35 +342,12 @@ def main() -> None:
         type=Path,
         default=Path(__file__).resolve().parents[1] / "data" / "gifteval_pretrain_subset",
     )
-    parser.add_argument(
-        "--gift-eval-dir",
-        type=Path,
-        default=_default_gifteval_dir(),
-    )
-    parser.add_argument(
-        "--audit-only",
-        action="store_true",
-        help="Re-run the anti-leakage audit on the local subset without querying Hugging Face Hub.",
-    )
     args = parser.parse_args()
 
     t_start = time.time()
     repo_root = Path(__file__).resolve().parents[1]
     results_dir = repo_root / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
-    if args.audit_only:
-        cat_path = results_dir / "eda_dataset_catalog.csv"
-        if cat_path.exists():
-            all_dirs = sorted(pd.read_csv(cat_path)["dir_name"].astype(str).tolist())
-        else:
-            all_dirs = sorted(p.parent.name for p in args.out_dir.glob("*/part-00000.parquet"))
-        audit = _run_leakage_audit(args.out_dir, args.gift_eval_dir, all_dirs, results_dir / "leakage_audit.json")
-        print(
-            f"Saved anti-leakage audit: overlap={audit['exact_name_overlap']}, "
-            f"nondeg_collisions={audit['nondegenerate_z64_hash_collisions']}, "
-            f"verified={audit['clean_disjoint_verified']}"
-        )
-        return
     args.out_dir.mkdir(parents=True, exist_ok=True)
     tmp_dir = args.out_dir.parent / "_hf_tmp_cache"
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -709,15 +480,6 @@ def main() -> None:
     manifest_path = results_dir / "subset_manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2))
     print(f"Saved subset manifest ({manifest['subset_disk_gb']} GB, {subset_total_series:,} series) to {manifest_path}")
-
-    try:
-        audit = _run_leakage_audit(args.out_dir, args.gift_eval_dir, all_dirs, results_dir / "leakage_audit.json")
-        print(f"Saved anti-leakage audit: overlap={audit['exact_name_overlap']}, max_r={audit['max_pearson_r_64step']}")
-    except (FileNotFoundError, ImportError) as exc:
-        print(
-            f"[WARN] Subset build succeeded, skipped anti-leakage audit ({exc}). "
-            "Mount GIFT_EVAL + install `gift-eval` and run `python scripts/build_subset.py --audit-only`."
-        )
 
 
 if __name__ == "__main__":

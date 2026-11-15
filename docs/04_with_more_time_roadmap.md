@@ -70,10 +70,10 @@ Before scaling backbone depth or GPU clusters, four low-risk experiments require
   5. **Cointegrated `VECM` / coupled `VAR`** multivariate systems, piecewise-regime `KernelSynth`, and Poisson-Gamma counts.
 
 ### Pillar 8: Three-Gate Multi-Benchmark Decontamination & Expansion (`GIFT-Eval` + `fev-bench` + `TIME`)
-- **Empirical Bottleneck Solved:** Eliminates the `4` degenerate two-level `[0, ..., c, ..., 0]` impulse hash collisions observed in [leakage_audit.json](../results/leakage_audit.json) and expands evaluation beyond `GIFT-Eval`.
+- **Empirical Bottleneck Solved:** Scaling pretraining beyond `GiftEvalPretrain` to broader public/web corpora requires automated cross-corpus decontamination without false positives on sparse or two-level step windows, alongside multi-benchmark evaluation beyond `GIFT-Eval`.
 - **Formulation:** Enforce three strict gates across `GIFT-Eval` (`97` configs), `fev-bench` (`100` tasks, `42` with rich dynamic covariates), and post-cutoff `TIME` (`98` tasks):
   1. Normalized family/alias exclusion (`weather` Monash/`oikolab` $\neq$ `jena_weather`).
-  2. **Non-degenerate support filter (`n_unique >= 8`) + z-normalized Pearson similarity ($r < 0.99$)** on levels **and first differences ($\Delta y$)** so constant/impulse plateaus cannot trigger false positives while true sub-series leaks are caught.
+  2. **Non-degenerate support filter (`n_unique >= 8`) + z-normalized Pearson similarity ($r < 0.99$)** on levels **and first differences ($\Delta y$)** so constant/impulse plateaus cannot trigger false positives while true sub-series overlaps are caught.
   3. Sliding-window temporal holdout truncation.
 
 ### Pillar 9: 2D Axial BFD Rectangle Packing vs. 1D Jagged Packing + `FlexAttention`

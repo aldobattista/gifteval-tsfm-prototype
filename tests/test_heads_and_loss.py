@@ -1,4 +1,4 @@
-"""Tests for quantile heads, pinball CRPS loss, GluonTS parity, bootstrap CI, and rollout bounds."""
+"""Tests for quantile heads, pinball CRPS loss, GluonTS parity, and rollout bounds."""
 
 from __future__ import annotations
 
@@ -18,7 +18,6 @@ from tsfm_proto.config import DECILE_LEVELS, TSFMConfig
 from tsfm_proto.data import _align_cov_width
 from tsfm_proto.eval_metrics import (
     EvalEntry,
-    paired_bootstrap_geomean_ci,
     predict_entries,
     score_task_fast,
 )
@@ -149,14 +148,8 @@ def test_score_task_fast_matches_gluonts_exact_parity() -> None:
     )
 
 
-def test_bootstrap_determinism_multichunk_recrop_and_postproc() -> None:
+def test_multichunk_recrop_blackout_and_postproc() -> None:
     rng = np.random.default_rng(1)
-    ratios = rng.uniform(0.7, 1.05, size=97)
-    fams = [f"fam_{i % 28}" for i in range(97)]
-    c1 = paired_bootstrap_geomean_ci(ratios, fams, n_boot=1000, seed=42)
-    c2 = paired_bootstrap_geomean_ci(ratios, fams, n_boot=1000, seed=42)
-    assert c1 == c2
-    assert c1["cluster_ci95_lo"] <= c1["gmr"] <= c1["cluster_ci95_hi"]
 
     # 2-chunk autoregressive rollout on H=720 with T_ctx=4096 in Run 0 (max_horizon_patches=16 -> H1=512).
     cfg = TSFMConfig(run_name="rollout_test", max_horizon_patches=16)

@@ -1,4 +1,4 @@
-"""Batched zero-shot evaluation, exact GluonTS-parity scoring, and cluster bootstrap CIs.
+"""Batched zero-shot evaluation and exact GluonTS-parity scoring.
 
 Every evaluation window and multivariate group is assigned a distinct ``segment_id``
 and ``patch_group_id`` so rolling windows never contaminate one another. Inference
@@ -622,51 +622,3 @@ def evaluate_val_split(
 
     dec_metrics["val_crps"] = float(np.mean(crps_vals)) if crps_vals else float("nan")
     return dec_metrics
-
-
-def paired_bootstrap_geomean_ci(
-    ratios: np.ndarray,
-    family_ids: list[str] | np.ndarray,
-    n_boot: int = 10000,
-    seed: int = 42,
-) -> dict[str, float]:
-    """Compute task-level and 28-family cluster-robust paired bootstrap 95% CIs on geometric-mean ratios."""
-    arr = np.asarray(ratios, dtype=np.float64)
-    fam = np.asarray(family_ids)
-    valid = np.isfinite(arr) & (arr > 0.0)
-    arr = arr[valid]
-    fam = fam[valid]
-
-    log_r = np.log(arr)
-    point_gmr = float(np.exp(np.mean(log_r)))
-    win_rate = float(np.mean(arr < 1.0))
-
-    rng = np.random.default_rng(seed)
-    n_tasks = arr.size
-
-    # 1. Task-level paired bootstrap across the 97 tasks.
-    idx_task = rng.integers(0, n_tasks, size=(n_boot, n_tasks))
-    gmr_task = np.exp(np.mean(log_r[idx_task], axis=1))
-    ci_lo, ci_hi = np.percentile(gmr_task, [2.5, 97.5])
-
-    # 2. Cluster-robust paired bootstrap over dataset families (avoids horizon pseudo-replication).
-    uniq_fam = np.unique(fam)
-    fam_groups = [log_r[fam == f] for f in uniq_fam]
-    n_fam = len(fam_groups)
-    gmr_clust = np.empty(n_boot, dtype=np.float64)
-    for b in range(n_boot):
-        chosen = rng.integers(0, n_fam, size=n_fam)
-        vals = np.concatenate([fam_groups[c] for c in chosen])
-        gmr_clust[b] = np.exp(np.mean(vals))
-    c_lo, c_hi = np.percentile(gmr_clust, [2.5, 97.5])
-
-    return {
-        "gmr": point_gmr,
-        "ci95_lo": float(ci_lo),
-        "ci95_hi": float(ci_hi),
-        "cluster_ci95_lo": float(c_lo),
-        "cluster_ci95_hi": float(c_hi),
-        "win_rate": win_rate,
-        "n_tasks": float(n_tasks),
-        "n_families": float(n_fam),
-    }

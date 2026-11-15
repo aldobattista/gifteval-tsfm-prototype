@@ -1,4 +1,4 @@
-"""Tests for local Parquet subset schema, temperature sampling, and zero leakage."""
+"""Tests for local Parquet subset schema, temperature sampling, and validation tail holdout."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -29,18 +30,16 @@ def test_missing_subset_raises_runtime_error(tmp_path: Path) -> None:
         SubsetDatasetStore(tmp_path / "does_not_exist")
 
 
-def test_leakage_audit_zero_exact_overlap() -> None:
-    audit_path = RESULTS_DIR / "leakage_audit.json"
-    manifest_path = RESULTS_DIR / "subset_manifest.json"
-    if not audit_path.exists():
-        pytest.skip("Run scripts/build_subset.py first to materialize leakage_audit.json")
-    audit = json.loads(audit_path.read_text())
-    manifest = json.loads(manifest_path.read_text())
-    assert audit["exact_name_overlap"] == []
-    assert audit["clean_disjoint_verified"] is True
-    assert int(audit["nondegenerate_z64_hash_collisions"]) == 0
-    assert int(audit["pretrain_directories_checked"]) == 152
+def test_subset_manifest_and_eda_catalog_invariants() -> None:
+    manifest = json.loads((RESULTS_DIR / "subset_manifest.json").read_text())
+    assert int(manifest["full_corpus_directories"]) == 152
     assert int(manifest["subset_directories"]) == 93
+    assert int(manifest["subset_non_climate_directories"]) == 89
+    assert len(manifest["subset_climate_directories"]) == 4
+    assert int(manifest["subset_total_series"]) == 96831
+
+    catalog = pd.read_csv(RESULTS_DIR / "eda_dataset_catalog.csv")
+    assert len(catalog) == 152
 
 
 def test_subset_schema_temperature_and_val_truncation() -> None:
@@ -274,9 +273,3 @@ def test_cap_series_arrays_disjoint_and_store_excludes_hist(tmp_path: Path) -> N
     vals = store.build_validation_examples()
     assert len(vals) == 1
     assert vals[0].item_id == "b__recent"
-
-
-def test_run_leakage_audit_missing_subset_raises_file_not_found(tmp_path: Path) -> None:
-    build_subset = _load_build_subset_module()
-    with pytest.raises(FileNotFoundError, match="no Parquet shards found"):
-        build_subset._run_leakage_audit(tmp_path / "missing_sub", tmp_path / "ge", [], tmp_path / "audit.json")

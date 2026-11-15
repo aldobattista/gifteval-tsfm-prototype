@@ -2,8 +2,7 @@
 
 Supports `--smoke` (3 critical edge-case tasks with mandatory < 1e-6 GluonTS parity
 assertion), full 97-task evaluation with Raw Neural vs +Clamp/Snap vs +SymAvg
-decompositions, 20/64-step pre-origin blackout stress testing, and 10,000-resample
-task-level + 28-family cluster-robust paired bootstrap 95% confidence intervals.
+decompositions, and 20/64-step pre-origin blackout stress testing.
 """
 
 from __future__ import annotations
@@ -25,7 +24,6 @@ from tsfm_proto.config import DECILE_LEVELS, TSFMConfig
 from tsfm_proto.data import normalize_pandas_freq
 from tsfm_proto.eval_metrics import (
     EvalEntry,
-    paired_bootstrap_geomean_ci,
     predict_entries,
     score_task_fast,
 )
@@ -282,52 +280,6 @@ def _build_seasonal_naive_deciles(entries: list[EvalEntry]) -> list[np.ndarray]:
     return sn_decs
 
 
-def _compute_bootstrap_ci_rows(
-    per_run_raw_dfs: dict[str, pd.DataFrame],
-    per_run_sym_dfs: dict[str, pd.DataFrame] | None = None,
-) -> list[dict[str, object]]:
-    """Compute paired 10,000-resample task-level and 28-family cluster-robust 95% CIs."""
-    run_order = list(per_run_raw_dfs.keys())
-    ci_rows: list[dict[str, object]] = []
-    if len(run_order) < 2:
-        return ci_rows
-
-    named_dfs: dict[str, pd.DataFrame] = dict(per_run_raw_dfs)
-    pairs: list[tuple[str, str]] = [(run_order[i], run_order[i - 1]) for i in range(1, len(run_order))]
-    for rname in run_order[2:]:
-        pairs.append((rname, run_order[0]))
-
-    if per_run_sym_dfs and "run5_coupled_synth_mix" in per_run_sym_dfs:
-        sym_key = "run5_coupled_synth_mix (+SymAvg+Clamp)"
-        named_dfs[sym_key] = per_run_sym_dfs["run5_coupled_synth_mix"]
-        pairs.append((sym_key, "run5_coupled_synth_mix"))
-        pairs.append((sym_key, run_order[0]))
-
-    for run_a, run_b in pairs:
-        df_a = named_dfs[run_a].sort_values("dataset").reset_index(drop=True)
-        df_b = named_dfs[run_b].sort_values("dataset").reset_index(drop=True)
-        for metric_col in ("nmwql", "nmase"):
-            ratios = df_a[metric_col].to_numpy() / df_b[metric_col].to_numpy()
-            stats = paired_bootstrap_geomean_ci(ratios, df_a["family"].to_numpy(), n_boot=10000, seed=42)
-            ci_rows.append(
-                {
-                    "run_a": run_a,
-                    "run_b": run_b,
-                    "metric": metric_col,
-                    "gmr": round(stats["gmr"], 6),
-                    "pct_change": round((stats["gmr"] - 1.0) * 100.0, 3),
-                    "ci95_lo": round(stats["ci95_lo"], 6),
-                    "ci95_hi": round(stats["ci95_hi"], 6),
-                    "cluster_ci95_lo": round(stats["cluster_ci95_lo"], 6),
-                    "cluster_ci95_hi": round(stats["cluster_ci95_hi"], 6),
-                    "win_rate": round(stats["win_rate"], 4),
-                    "n_tasks": int(stats["n_tasks"]),
-                    "n_families": int(stats["n_families"]),
-                }
-            )
-    return ci_rows
-
-
 def _export_leaderboard_comparison(
     results_dir: Path,
     official_dir: Path | None,
@@ -470,7 +422,7 @@ def main() -> None:
     parser.add_argument(
         "--recompute-summaries-only",
         action="store_true",
-        help="Recompute summary, slice, bootstrap CI, and leaderboard CSVs from saved per-task CSVs.",
+        help="Recompute summary, slice, and leaderboard CSVs from saved per-task CSVs.",
     )
     parser.add_argument(
         "--official-leaderboard-dir",
@@ -546,11 +498,8 @@ def main() -> None:
 
         pd.DataFrame(summary_rows).to_csv(args.results_dir / "gifteval_ablation_summary.csv", index=False)
         pd.DataFrame(slice_rows).to_csv(args.results_dir / "gifteval_slices_summary.csv", index=False)
-        ci_rows = _compute_bootstrap_ci_rows(per_run_raw_dfs, per_run_sym_dfs)
-        if ci_rows:
-            pd.DataFrame(ci_rows).to_csv(args.results_dir / "gifteval_bootstrap_cis.csv", index=False)
         _export_leaderboard_comparison(args.results_dir, args.official_leaderboard_dir, per_run_raw_dfs, per_run_sym_dfs)
-        print("Recomputed summary, slice, bootstrap CI, and leaderboard CSVs.")
+        print("Recomputed summary, slice, and leaderboard CSVs.")
         return
 
     if not args.gifteval_dir.exists():
@@ -795,10 +744,6 @@ def main() -> None:
     if blackout_rows:
         pd.DataFrame(blackout_rows).to_csv(args.results_dir / "gifteval_blackout_stress.csv", index=False)
 
-    # Compute task-level and 28-family cluster-robust paired bootstrap 95% CIs across runs.
-    ci_rows = _compute_bootstrap_ci_rows(per_run_raw_dfs, per_run_sym_dfs)
-    if ci_rows:
-        pd.DataFrame(ci_rows).to_csv(args.results_dir / "gifteval_bootstrap_cis.csv", index=False)
     _export_leaderboard_comparison(
         args.results_dir, args.official_leaderboard_dir, per_run_raw_dfs, per_run_sym_dfs
     )

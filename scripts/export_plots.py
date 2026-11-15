@@ -294,7 +294,7 @@ def plot_training_curves(ckpt_root: Path, results_dir: Path, out_dir: Path) -> N
     plt.close(fig)
 
 
-def plot_ablation_waterfall(summary_csv: Path, ci_csv: Path, out_dir: Path) -> None:
+def plot_ablation_waterfall(summary_csv: Path, out_dir: Path) -> None:
     """Plot 97-task normalized geometric-mean MWQL and MASE progression across Runs 0..5 + SymAvg."""
     if not summary_csv.exists():
         return
@@ -308,7 +308,6 @@ def plot_ablation_waterfall(summary_csv: Path, ci_csv: Path, out_dir: Path) -> N
 
     sym_r5 = df[(df["run_name"] == "run5_coupled_synth_mix") & (df["postproc"] == "sym_avg_clamp")]
     plot_rows = raw[["run_name", "geo_nmwql", "geo_nmase"]].copy()
-    plot_rows["ci_key"] = plot_rows["run_name"]
     plot_rows["label"] = [
         _RUN_LABELS.get(str(r), str(r)).replace(": ", "\n") for r in plot_rows["run_name"]
     ]
@@ -324,7 +323,6 @@ def plot_ablation_waterfall(summary_csv: Path, ci_csv: Path, out_dir: Path) -> N
                             "run_name": "run5_sym_avg_clamp",
                             "geo_nmwql": float(r5_row["geo_nmwql"]),
                             "geo_nmase": float(r5_row["geo_nmase"]),
-                            "ci_key": "run5_coupled_synth_mix (+SymAvg+Clamp)",
                             "label": "Run 5\n+SymAvg+Clamp",
                             "color": "#991B1B",
                         }
@@ -333,35 +331,6 @@ def plot_ablation_waterfall(summary_csv: Path, ci_csv: Path, out_dir: Path) -> N
             ],
             ignore_index=True,
         )
-
-    ci_df = pd.read_csv(ci_csv) if ci_csv.exists() else pd.DataFrame()
-    base_name = "run0_v0_baseline"
-
-    def _compute_yerr(metric_col: str, geo_col: str) -> np.ndarray | None:
-        if ci_df.empty:
-            return None
-        base_val = float(plot_rows[geo_col].iloc[0])
-        low_err = np.zeros(len(plot_rows), dtype=np.float64)
-        high_err = np.zeros(len(plot_rows), dtype=np.float64)
-        any_found = False
-        for idx, ckey in enumerate(plot_rows["ci_key"]):
-            if idx == 0:
-                continue
-            hit = ci_df[
-                (ci_df["run_a"] == str(ckey))
-                & (ci_df["run_b"] == base_name)
-                & (ci_df["metric"] == metric_col)
-            ]
-            if hit.empty:
-                continue
-            any_found = True
-            row = hit.iloc[0]
-            pt = float(plot_rows[geo_col].iloc[idx])
-            ci_val_lo = base_val * float(row["ci95_lo"])
-            ci_val_hi = base_val * float(row["ci95_hi"])
-            low_err[idx] = max(0.0, pt - ci_val_lo)
-            high_err[idx] = max(0.0, ci_val_hi - pt)
-        return np.vstack([low_err, high_err]) if any_found else None
 
     fig, axes = plt.subplots(1, 2, figsize=(13.6, 4.9), constrained_layout=True)
     x = np.arange(len(plot_rows))
@@ -372,7 +341,6 @@ def plot_ablation_waterfall(summary_csv: Path, ci_csv: Path, out_dir: Path) -> N
     ]
     for ax_idx, metric_col, geo_col, ylims, title, ylabel in configs:
         ax = axes[ax_idx]
-        yerr = _compute_yerr(metric_col, geo_col)
         bars = ax.bar(
             x,
             plot_rows[geo_col],
@@ -380,18 +348,6 @@ def plot_ablation_waterfall(summary_csv: Path, ci_csv: Path, out_dir: Path) -> N
             alpha=0.90,
             width=0.68,
         )
-        if yerr is not None and len(x) > 1:
-            ax.errorbar(
-                x[1:],
-                plot_rows[geo_col].to_numpy(dtype=np.float64)[1:],
-                yerr=yerr[:, 1:],
-                fmt="none",
-                capsize=4,
-                ecolor="#1A202C",
-                lw=1.2,
-                zorder=4,
-                label="Internal Paired 95% CI vs. Run 0",
-            )
         if len(bars) > 6:
             bars[-1].set_hatch("//")
             bars[-1].set_edgecolor("#450A0A")
@@ -408,8 +364,7 @@ def plot_ablation_waterfall(summary_csv: Path, ci_csv: Path, out_dir: Path) -> N
             ax.legend(loc="upper right", fontsize=8.2)
 
         for idx, val in enumerate(plot_rows[geo_col]):
-            top_pad = float(yerr[1, idx]) if yerr is not None else 0.0
-            text_y = float(val) + top_pad + 0.0028
+            text_y = float(val) + 0.0028
             for ref_y in sorted(ref_lines):
                 if ref_y - 0.0075 < text_y < ref_y + 0.0025:
                     text_y = ref_y + 0.0025
@@ -567,7 +522,6 @@ def main() -> None:
     plot_training_curves(args.ckpt_root, args.results_dir, fig_dir)
     plot_ablation_waterfall(
         args.results_dir / "gifteval_ablation_summary.csv",
-        args.results_dir / "gifteval_bootstrap_cis.csv",
         fig_dir,
     )
     plot_slices_and_blackout(

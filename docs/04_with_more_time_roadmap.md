@@ -2,9 +2,10 @@
 
 Every item below maps directly to a residual failure isolated in [docs/03_evaluation_and_error_analysis.md](03_evaluation_and_error_analysis.md).
 
-## Priority 0 — Compute, Corpus & `10S` Coverage Scale-Up
+## Priority 0 — Cadence, `tsfeatures` Instance-Space Sampling & Scale-Up
 
-- **Scale Capacity & Data First:** Expand from `16.32M` params / `20k` steps / `2.74 GB` subset on one Apple M2 Max to `120M+` parameters (`d_model >= 768`, `12–16` layers, `150k+` steps) on multi-GPU compute across the full corpus plus `10S` sub-hourly telemetry.
+- **Hierarchical Cadence & `tsfeatures` Instance-Space Sampling:** Under directory-only temperature sampling (`alpha = 0.35`, [data.py](../src/tsfm_proto/data.py#L264-L268)), `5min` still draws `25.1%` (`14` dirs) and the top-`4` cadences (`5min`, `h`, `D`, `30min`) absorb `69.4%` of real draws while `4s` (`4` segments across `2` dirs) receives `0.31%`—yet naive uniform per-frequency sampling would overfit tiny single-domain buckets (`4s`, `10min`) while starving the `28` diverse hourly domains. Replace flat directory weights with a **two-stage `(cadence_family -> directory)` temperature sampler** paired with offline Python **`tsfeatures` morphological stratification** (inverse-density / cluster-balanced sampling across spectral entropy, trend and seasonal strength, `ACF/PACF` persistence, Hurst/nonlinearity, `ARCH` heteroskedasticity, lumpiness, and intermittency) so pretraining uniformly spans both sampling cadences and the full statistical instance space of time-series dynamics.
+- **Scale Capacity & Data:** Expand from `16.32M` params / `20k` steps / `2.74 GB` subset on one Apple M2 Max to `120M+` parameters (`d_model >= 768`, `12–16` layers, `150k+` steps) on multi-GPU compute across the full corpus plus `10S` sub-hourly telemetry.
 - **Keep Zero-Shot Discipline:** Continue excluding `GIFT-Eval` from training and validate synthetic `10S` priors strictly out-of-distribution.
 
 ## Tier 1 — High-ROI Architectural Upgrades

@@ -707,7 +707,7 @@ _ARCHITECTURE_TIKZ_TEX = r"""\documentclass[border=8pt]{standalone}
 \draw[decorate, decoration={brace, amplitude=3pt, mirror}, tfcbody,
   line width=0.5pt] (6.72, 0.88) -- (9.68, 0.88);
 \node[font=\tiny, text=tfcink, anchor=north, inner sep=1pt]
-  at (8.20, 0.74) {$\times\,8$ layers ($d{=}384$, 6h)};
+  at (8.20, 0.74) {$\times\,8$ Pre-RMSNorm layers ($d{=}384$, 6h)};
 
 \draw[flow] (9.80, 1.55) -- (10.05, 1.55);
 \draw[archpanel] (10.05, 0.35) rectangle (11.99, 2.75);
@@ -735,10 +735,10 @@ _ARCHITECTURE_TIKZ_TEX = r"""\documentclass[border=8pt]{standalone}
 
 % --- (b) 17-CH PATCH EMBEDDING ---
 \node[paneltitle, anchor=north] at (2.80, -0.45) {(b) 17-CH PATCH EMBEDDING};
-\begin{scope}[yshift=-0.25cm]
-\node[rowlabel, text=tfcbody] at (0.88, -1.25) {val + loc};
-\node[rowlabel, text=tfcbody] at (0.88, -1.85) {mask + pos};
-\node[rowlabel, text=tfcbody] at (0.88, -2.45) {6 lags+ok};
+\begin{scope}[xshift=0.22cm, yshift=-0.25cm]
+\node[rowlabel, text=tfcbody] at (0.88, -1.25) {val, loc, 6 lags};
+\node[rowlabel, text=tfcbody] at (0.88, -1.85) {ramp + pos};
+\node[rowlabel, text=tfcbody] at (0.88, -2.45) {obs + 6 lag masks};
 \foreach \yc in {-1.25, -1.85, -2.45} {
   \draw[tfcbody, line width=0.4pt]
     (0.99, \yc+0.15) -| (0.92, \yc-0.15) -- (0.99, \yc-0.15);
@@ -806,8 +806,8 @@ _ARCHITECTURE_TIKZ_TEX = r"""\documentclass[border=8pt]{standalone}
 \node[blanktok] (ty1) at (7.22, -1.35) {};
 \tokn{ty2}{7.72}{-1.35}{roley}
 \tokn{ty3}{8.22}{-1.35}{roley}
-\node[blanktok, draw=roley, line width=0.9pt] (ty4) at (9.02, -1.35) {};
-\node[blanktok] (ty5) at (9.52, -1.35) {};
+\node[blanktok] (ty4) at (9.02, -1.35) {};
+\node[blanktok, draw=roley, line width=0.9pt] (ty5) at (9.52, -1.35) {};
 
 \tokn{tx0}{6.72}{-2.10}{rolex}
 \tokn{tx1}{7.22}{-2.10}{rolex}
@@ -816,9 +816,9 @@ _ARCHITECTURE_TIKZ_TEX = r"""\documentclass[border=8pt]{standalone}
 \node[blanktok] (tx4) at (9.02, -2.10) {};
 \node[blanktok] (tx5) at (9.52, -2.10) {};
 
-\draw[attnarrow, roley] (ty0.north) to[bend left=42] (ty4.north);
-\draw[attnarrow, roley] (ty2.north) to[bend left=38] (ty4.north);
-\draw[attnarrow, roley] (ty3.north) to[bend left=34] (ty4.north);
+\draw[attnarrow, roley] (ty0.north) to[bend left=42] (ty5.north);
+\draw[attnarrow, roley] (ty2.north) to[bend left=38] (ty5.north);
+\draw[attnarrow, roley] (ty3.north) to[bend left=34] (ty5.north);
 
 \draw[attnarrow, rolex] (tx0.north) to[bend left=42] (tx3.north);
 \draw[attnarrow, rolex] (tx1.north) to[bend left=38] (tx3.north);
@@ -905,6 +905,7 @@ _ARCHITECTURE_TIKZ_TEX = r"""\documentclass[border=8pt]{standalone}
 \node[note, anchor=east, inner sep=1pt] at (6.58, -4.45) {input};
 \node[note, anchor=east, inner sep=1pt] at (6.58, -5.35) {output};
 \fill[tfcsurface] (6.68+5*0.64-0.04, -4.24) rectangle (6.68+8*0.64+0.04, -5.56);
+\draw[tfcgreenstroke, line width=0.45pt] (6.68+5*0.64-0.02, -4.24) -- (6.68+5*0.64-0.02, -5.56);
 \foreach \p/\k in {0/obs,1/obs,2/obs,3/blank,4/obs,5/blank,6/blank,7/blank}
   {\cpmpatch{6.68+\p*0.64}{-4.45}{\k}{\p*0.64}{roley}}
 \node[note, anchor=south, inner sep=0.5pt] at (6.68+3.5*0.64, -4.23) {30\% blk};
@@ -923,6 +924,7 @@ _ARCHITECTURE_TIKZ_TEX = r"""\documentclass[border=8pt]{standalone}
 \node[note, anchor=east, inner sep=1pt] at (6.58, -5.95) {input};
 \node[note, anchor=east, inner sep=1pt] at (6.58, -6.85) {output};
 \fill[tfcsurface] (6.68+5*0.64-0.04, -5.74) rectangle (6.68+8*0.64+0.04, -7.06);
+\draw[tfcgreenstroke, line width=0.45pt] (6.68+5*0.64-0.02, -5.74) -- (6.68+5*0.64-0.02, -7.06);
 \foreach \p/\k in {0/obs,1/obs,2/obs,3/obs,4/obs,5/blank,6/blank,7/blank}
   {\cpmpatch{6.68+\p*0.64}{-5.95}{\k}{\p*0.64}{roley}}
 \node[smallblock, minimum width=1.15cm] (cpminfer) at (9.24, -6.40) {\texttt{TSFMModel}};

@@ -9,17 +9,15 @@ A standalone, from-scratch PyTorch time-series foundation model (`TSFM`, `TSFMMo
 
 ## Executive Summary
 
-- **Zero-Shot Progression (`97` Official `GIFT-Eval` Tasks):** Measured by geometric-mean error relative to `Seasonal_Naive` (`SN = 1.0`, lower is better) on probabilistic decile Normalized Mean Weighted Quantile Loss (`nMWQL`) and median Normalized Mean Absolute Scaled Error (`nMASE`), cumulative upgrades improve **`Run 0 -> Run 5`** `nMWQL` from **`0.6218`** to **`0.5946` raw (`-4.37%`, `67/97` task wins vs `Run 0`)** and **`0.5890` `+SymAvg+Clamp` (`-5.27%`, `71/97` vs `Run 0`)** (causal signed reflection averaging `0.5 * (f(y) - flip(f(-y)))` before non-negative clipping and bounded integer rounding), lowering `nMASE` from `0.8905` to `0.8596` raw / **`0.8523` (`-4.29%`, `72/97` vs `Run 0`)** and beating `SN` on **`90 / 97` (`92.8%`)** tasks.
+- **Zero-Shot Progression (`97` Official `GIFT-Eval` Tasks):** Measured by geometric-mean error relative to `Seasonal_Naive` (`SN = 1.0`, lower is better) on probabilistic decile Normalized Mean Weighted Quantile Loss (`nMWQL`) and median Normalized Mean Absolute Scaled Error (`nMASE`), cumulative upgrades improve **`Run 0 → Run 5`** `nMWQL` from **`0.6218`** to **`0.5946` raw (`-4.37%`, `67/97` task wins vs `Run 0`)** and **`0.5890` `+SymAvg+Clamp` (`-5.27%`, `71/97` vs `Run 0`)** (causal signed reflection averaging `0.5 * (f(y) - flip(f(-y)))` before non-negative clipping and bounded integer rounding), lowering `nMASE` from `0.8905` to `0.8596` raw / **`0.8523` (`-4.29%`, `72/97` vs `Run 0`)** and beating `SN` on **`90 / 97` (`92.8%`)** tasks.
 - **Official Leaderboard Context ([gifteval_leaderboard_comparison.csv](results/gifteval_leaderboard_comparison.csv)):** Places **`#15 / 28`** against `27` curated baselines (inserts at **`#106 / 142`** against `141` complete official submissions), outperforming `TimesFM` (`0.6804`), `Chronos_base` (`0.6521`), `Moirai_small` (`0.6504`), `Moirai_base` (`0.6095`), `TFT` (`0.6047`), and `Moirai_large` (`0.5989`), and matching supervised `PatchTST` (`0.5870`; `Run 5 (+SymAvg+Clamp)` wins `56/97` `nMWQL` tasks head-to-head).
 - **Candid Failure Boundary (`0.5581` Excluding `10S`, `ex-10S`):** Leaving out the `6` `10`-second (`10S`) cloud-telemetry tasks drops `Run 5` to `0.5581` `+SymAvg+Clamp` (`0.5637` raw); `0 / 152` `GiftEvalPretrain` directories carry `10S` cadence, leaving **`7 / 97` tasks above `1.0` `nMWQL`** (`4x 10S`, `bizitobs_l2c/5T/long`, `m4_daily/D/short`, `us_births/M/short`) and a `~0.10` gap to frontier TSFMs (`Chronos-2` `0.4854`, `t0-gamma` `0.4520`).
 - **Hardware, Protocol & Compute ([WORKLOG.md](WORKLOG.md)):** Single Apple M2 Max (`bfloat16` MPS + `float32` scaling/heads/loss), fixed `seed = 42`, unweighted `5`-snapshot (`16k..20k`) Warmup-Stable-Decay (`WSD`) cooldown `float64` soup (`3–3` internal validation `nMWQL` tie vs `step_20000` in [val_soup_vs_last.csv](results/val_soup_vs_last.csv)); `~8.9h` final pipeline compute (`39.3m` subsetting + `~7.76h` training + `~30m` eval; `~10.4h` incl. early diagnostics).
 
-```mermaid
-flowchart LR
-    D["1. Stratified Subset (2.74 GB, 93 dirs, alpha=0.35)"] --> M["2. Runs 0..5 (14.8M -> 16.3M, 20k steps)"]
-    M --> E["3. 97-Task GIFT-Eval (0.5890 nMWQL, 90/97 vs SN)"]
-    E --> N["4. Scaling Roadmap (3:1 State-Space+Attn, 4x8 Stem, Multi-GPU)"]
-```
+| 1. Data & Packing | 2. Model & Runs 0–5 | 3. 97-Task GIFT-Eval | 4. Scaling Roadmap |
+| :--- | :--- | :--- | :--- |
+| `2.74 GB` (`93` dirs, `alpha=0.35`), `[1,32,128]` `99.5%` pack | `14.8M–16.3M` Transformer, Probit `Q21`, `GroupAttn`, `15%` synth | `0.5890` `nMWQL` (`90/97` vs `SN`), `64`-blk `-19.7%` | `3:1` State-Space+Attn, `4x8` stem, `10S` + future `z` |
+| [Section 1](#1-dataset-construction-stratification--strip-packing) · [Doc 01](docs/01_data_pipeline_and_eda.md) · [NB 01](notebooks/01_data_pipeline_walkthrough.ipynb) | [Section 2](#2-model-architecture--progressive-ablations) · [Doc 02](docs/02_architecture_and_ablations.md) · [NB 02](notebooks/02_model_invariants_and_overfit_check.ipynb) | [Section 3](#3-zero-shot-evaluation-disaggregated-slices--error-analysis) · [Doc 03](docs/03_evaluation_and_error_analysis.md) · [NB 03](notebooks/03_checkpoint_eval_and_forecasts.ipynb) | [Section 4](#4-next-steps--scaling-roadmap) · [Doc 04](docs/04_with_more_time_roadmap.md) · [Repo Map](#5-reproducibility--repository-map) |
 
 ---
 

@@ -94,7 +94,7 @@ Closing the `~0.10 nMWQL` frontier gap (`0.589 -> ~0.48`) maps each observed bot
 
 - **Priority 0 — Compute, Corpus & `10S` Cadence Expansion:** Scale from `16.32M` params / `20k` steps / `2.74 GB` on one Apple M2 Max to `120M+` parameters / `150k+` steps across multi-GPU hardware over full `GiftEvalPretrain` plus synthetic/real `10S` sub-hourly telemetry while preserving zero-shot isolation.
 - **Architectural & Context Extensions:** Replace `128`-patch quadratic self-attention limits with `3:1` interleaved gated linear state-space recurrence + pointwise-gated full attention (`8,640+` steps/day on `10S`), adopt a multi-scale `4x8` sub-patch stem (`360 mod 8 = 0`), add known-future covariates `z` for calendar effects (`us_births/M`), and learn a drift-blended origin frame `mu_dec` for non-stationary random walks (`m4_daily/D`).
-- **Calibration & Ensembling:** Expand seasonal lag lookup to `S in {144, 288, 360, 720, 1440}` with generalized autoregressive conditional heteroskedastic (`GARCH`)-modulated volatility bursts (`bizitobs_*` `Cov80`), add Student-t tail parameterizations, and average multi-seed checkpoints from the final `10–12%` tail of WSD cooldown (`0.88 * S_end .. S_end`).
+- **Multi-Rate Augmentation, Calibration & Ensembling:** Apply strictly high-to-low-frequency temporal aggregation (`mean`/subsampling for state variables, `sum` for flow/count totals—bridging `4S -> 8S–12S` near `10S` and `S/T/H -> D/W/M` scarce `Low-Res` series alongside `GARCH` burst priors for non-invertible sub-minute spikes), expand seasonal lags to `S in {144, 288, 360, 720, 1440}`, add Student-t tail parameterizations, and average multi-seed checkpoints from the final `10–12%` tail of WSD cooldown (`0.88 * S_end .. S_end`).
 
 ---
 
